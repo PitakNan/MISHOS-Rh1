@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script src="theme.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISHOS — วิเคราะห์รายโรงพยาบาล เทียบเชิงบริบท</title>
+<style>
+:root{
+  --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
+  --line:#DCE3DE; --grid:#EDF1EE; --accent:#0E8A5F; --accent-deep:#0A6647; --accent-soft:#E4F1EB;
+  --blue:#3568C0; --blue-soft:#E8EEF9; --warn:#A9701F; --warn-soft:#F5E9D7;
+  --mono:ui-monospace,"SF Mono","Consolas",monospace;
+  --sans:"Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif;
+}
+:root[data-theme="dark"]{
+  --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+  --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+  --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+    --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+    --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 22px 80px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header h1{font-size:19px;font-weight:700;margin:0}
+header .sub{font-size:12px;color:var(--ink-2);font-family:var(--mono)}
+.nav{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--line)}
+.nav a{padding:8px 16px;font-size:13.5px;color:var(--ink-2);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px}
+.nav a.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.nav a:hover{color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:12.5px;font-family:var(--sans);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.btn:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.controls .fld{display:flex;flex-direction:column;gap:3px}
+.controls label{font-size:11.5px;color:var(--ink-2)}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--ink);font-family:var(--sans);max-width:340px}
+select[multiple]{min-width:260px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card h3{margin:0 0 4px;font-size:14.5px;font-weight:700}
+.csub{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin:0 0 6px}
+.hosp-head{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.hosp-head h2{margin:0;font-size:20px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11.5px;background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:3px 11px;font-weight:600;white-space:nowrap}
+.chip.b{background:var(--blue-soft);color:var(--blue)}
+.chip.w{background:var(--warn-soft);color:var(--warn)}
+.narr{border-left:4px solid var(--accent);margin-bottom:14px}
+.narr ul{margin:6px 0 0;padding-left:2px;list-style:none;display:flex;flex-direction:column;gap:8px}
+.narr li{font-size:14px;display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start}
+.narr li .ic{font-size:15px;line-height:1.4}
+.narr b{font-variant-numeric:tabular-nums}
+.main-grid{display:grid;grid-template-columns:1fr 330px;gap:14px;margin-bottom:14px}
+@media(max-width:980px){.main-grid{grid-template-columns:1fr}}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--ink-2);margin-top:6px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:13px;height:13px;border-radius:3px;display:inline-block}
+.sw.line{height:3px;border-radius:2px;width:18px}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--mono)}
+.bar{transition:opacity .1s}.bar:hover{opacity:.72}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);text-align:right;padding:7px 9px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:6px 9px;border-bottom:1px solid var(--grid);text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12px}
+td:first-child{text-align:left;font-family:var(--sans);font-size:12.5px}
+tr:hover td{background:var(--accent-soft)}
+td .up{color:var(--accent);font-weight:700} td .dn{color:var(--warn);font-weight:700}
+.rank-big{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.rank-sub{font-size:12px;color:var(--ink-2)}
+.dotplot{margin-top:10px}
+#tooltip{position:fixed;pointer-events:none;background:var(--ink);color:var(--page);font-size:12px;font-family:var(--mono);padding:5px 9px;border-radius:6px;z-index:50;display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.hidden, .controls .fld.hidden{display:none}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🏥 วิเคราะห์รายโรงพยาบาล — เทียบเชิงบริบท</h1>
+      <div class="sub">MISHOS (สปสช.) · ปีงบ 2560–2569 · <span id="gen-date"></span></div>
+    </div>
+    <button class="btn" id="theme-toggle">◐ โหมดสี</button>
+  </header>
+  <nav class="nav">
+    <a href="index.html">📈 เทรนด์ภาพรวม</a>
+    <a class="on" href="hospital.html" aria-current="page">🏥 วิเคราะห์รายโรง</a>
+    <a href="rank.html">🏆 จัดอันดับ</a>
+    <a href="risk.html">⚠️ เงินเสี่ยง</a>
+  </nav>
+
+  <div class="controls">
+    <div class="fld"><label>โรงพยาบาล</label><select id="sel-hosp"></select></div>
+    <div class="fld"><label>รายงาน</label><select id="sel-report"></select></div>
+    <div class="fld"><label>ตัวชี้วัด</label><select id="sel-metric"></select></div>
+    <div class="fld"><label>เส้นอ้างอิงเปรียบเทียบ</label><select id="sel-ref"></select></div>
+    <div class="fld"><label>ตัวหาร</label><select id="sel-norm">
+      <option value="raw">ค่าดิบ</option>
+      <option value="bed">ต่อเตียง</option>
+      <option value="pop">ต่อประชากร UC 1,000 คน</option>
+    </select></div>
+    <div class="fld hidden" id="peer-fld"><label>เลือก รพ. เทียบเอง (Ctrl+คลิก เลือกหลายแห่ง)</label>
+      <select id="sel-peers" multiple size="6"></select></div>
+  </div>
+
+  <div class="hosp-head">
+    <h2 id="h-name"></h2>
+    <div class="chips" id="h-chips"></div>
+  </div>
+
+  <div class="card narr">
+    <h3>📋 บทวิเคราะห์อัตโนมัติ</h3>
+    <p class="csub" id="narr-ctx"></p>
+    <ul id="narr-list"></ul>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <h3 id="chart-title"></h3>
+      <p class="csub" id="chart-sub"></p>
+      <svg id="main-chart" viewBox="0 0 900 240" role="img" aria-label="กราฟเทียบโรงพยาบาลกับเส้นอ้างอิง"></svg>
+      <div class="legend" id="chart-legend"></div>
+    </div>
+    <div class="card">
+      <h3>อันดับในกลุ่มเปรียบเทียบ</h3>
+      <p class="csub" id="rank-sub"></p>
+      <div class="rank-big" id="rank-val">–</div>
+      <div class="rank-sub" id="rank-note"></div>
+      <div class="dotplot"><svg id="dot-chart" viewBox="0 0 300 90"></svg></div>
+      <p class="csub" style="margin-top:6px">ตำแหน่ง รพ. (จุดเข้ม) เทียบสมาชิกกลุ่ม · ปีงบเต็มล่าสุด</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>ทุกตัวชี้วัดของรายงานนี้ — ปีงบเต็มล่าสุด เทียบกลุ่ม</h3>
+    <p class="csub" id="tbl-sub"></p>
+    <div style="overflow-x:auto"><table id="metric-table"></table></div>
+  </div>
+
+  <div class="card hidden" id="code-card">
+    <h3>แยกตามรหัส — ปีงบเต็มล่าสุด</h3>
+    <p class="csub" id="code-sub"></p>
+    <div style="overflow-x:auto"><table id="code-table"></table></div>
+  </div>
+
+  <footer>
+    กติกา: มัธยฐานกลุ่มไม่รวม รพ. ที่เลือก (C-2) · กลุ่ม n=1 แสดงค่าตามจริง (C-3) ·
+    รายงาน IP ปี 2560–2562 เป็นช่วงเริ่มระบบ ไม่ใช้คำนวณอัตราโต (R-2) · ปีงบ 2569 ไม่เต็มปี ไม่ใช้เทียบ (R-3)
+  </footer>
+</div>
+<div id="tooltip"></div>
+
+<script src="data/agg_annual.js"></script>
+<script>
+'use strict';
+const AGG = window.MISHOS_AGG, YEARS = AGG.years, NY = YEARS.length, PARTIAL = AGG.partial_fy, H = AGG.hospitals;
+const PROVS = ['เชียงใหม่','ลำพูน','ลำปาง','แพร่','น่าน','พะเยา','เชียงราย','แม่ฮ่องสอน'];
+const IP_REPORTS = ['ip_ipservice0102','ip_ipmonitor'];
+const GROUPS = [
+ ['การเงิน / รายรับ',['budget','statementuc']],
+ ['ผู้ป่วยใน',['ip_ipservice0102','ip_ipmonitor']],
+ ['บริการเฉพาะทาง',['central_stemi','central_cancer','central_cataract','central_stone','central_instrument_bycode','central_instrument_month','central_palliativecare']],
+ ['ผู้ป่วยนอก / ฉุกเฉิน',['central_opae','central_carrefer_month','central_carrefer_subfund','op_opwalkin','op_opontop_province','op_opontop_network']],
+ ['ส่งเสริมป้องกัน (PP)',['pp_ppfee','pp_healthcheck']],
+ ['นโยบาย / โครงการใหม่',['policy_cancerany','policy_change_right','policy_telemed','dmis_ckd','dmis_moph','dmis_ktp']],
+ ['คุณภาพข้อมูลเบิก',['eclaimdata_uc_op','eclaimdata_uc_ip','eclaimdata_other_op','eclaimdata_other_ip']],
+ ['สิทธิอื่น (ขรก./อปท.)',['other_csmbs','other_lgo']],
+];
+const REF_MODES = [
+ ['group_region','ค่ากลาง GroupName เดียวกัน — ทั้งเขต'],
+ ['group_prov','ค่ากลาง GroupName เดียวกัน — ในจังหวัด'],
+ ['size_region','ค่ากลางประเภทขนาดเดียวกัน (A–F3) — ทั้งเขต'],
+ ['prov','ค่ากลางจังหวัดเดียวกัน (ทุกขนาด)'],
+ ['region','ค่ากลางทั้งเขต'],
+ ['custom','เลือก รพ. เทียบเอง (หลายแห่งได้)'],
+];
+const qs = new URLSearchParams(location.search);
+let state = {
+  h: qs.get('h') && H[qs.get('h')] ? qs.get('h') : '10713',
+  report: qs.get('r') && AGG.reports[qs.get('r')] ? qs.get('r') : 'budget',
+  metric: qs.get('m') || 'BUDGET',
+  ref: 'group_region', norm: 'raw', peers: [],
+};
+const $ = id => document.getElementById(id);
+function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
+  const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
+  return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
+function metricPref(ms){ const k=Object.keys(ms);
+  return k.find(x=>/AMT|BUDGET/.test(x)&&!/RATE/.test(x))||k.find(x=>/NUM|VISIT|DAY_SUM/.test(x))||k[0]; }
+function unitBase(m){ return /AMT|BUDGET/.test(m)?'บาท':/ADJRW/.test(m)?'AdjRW':'ครั้ง'; }
+function unitOf(vals){ const mx=Math.max(...vals.filter(v=>v!=null&&isFinite(v)).map(Math.abs),0);
+  return mx>=1e6?1e6:mx>=1e4?1e3:1; }
+function unitLbl(div,m){ const b=unitBase(m); return div===1e6?'ล้าน'+b:div===1e3?'พัน'+b:b; }
+
+function divisor(h){
+  if (state.norm==='bed') return H[h].b || null;
+  if (state.norm==='pop') return H[h].pop ? H[h].pop/1000 : null;
+  return 1;
+}
+function seriesRaw(h){ return (AGG.annual[h]?.[state.report]?.[state.metric]) || Array(NY).fill(null); }
+function seriesNorm(h){
+  const d = divisor(h); if (!d) return null;
+  return seriesRaw(h).map(v => v==null?null:v/d);
+}
+// ธง normalization ที่ใช้จริงในรอบ render นี้ — ถ้า รพ.ที่เลือกไม่มีตัวหาร ให้ถอยกลับค่าดิบ "ทั้งกระดาน" (รพ.+กลุ่ม) กันเทียบคนละหน่วย
+let USE_NORM = false;
+function serAct(h){ return USE_NORM ? seriesNorm(h) : seriesRaw(h); }
+function groupMembers(){
+  const me = H[state.h];
+  const all = Object.keys(H).filter(x=>x!==state.h);
+  switch(state.ref){
+    case 'group_region': return all.filter(x=>H[x].g && H[x].g===me.g);
+    case 'group_prov': return all.filter(x=>H[x].g && H[x].g===me.g && H[x].p===me.p);
+    case 'size_region': return all.filter(x=>H[x].s && H[x].s===me.s);
+    case 'prov': return all.filter(x=>H[x].p===me.p);
+    case 'region': return all;
+    case 'custom': return state.peers.filter(x=>x!==state.h);
+  }
+  return [];
+}
+function median(arr){ const a=arr.filter(v=>v!=null&&isFinite(v)).sort((x,y)=>x-y);
+  if(!a.length) return null; const m=a.length>>1;
+  return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+function refSeries(members){
+  const out = Array(NY).fill(null);
+  const perH = members.map(x=>seriesNorm(x)).filter(Boolean);
+  for (let i=0;i<NY;i++) out[i] = median(perH.map(s=>s[i]));
+  return out;
+}
+function lastFull(vals){ for(let i=NY-1;i>=0;i--) if(YEARS[i]!==PARTIAL && vals[i]!=null) return i; return -1; }
+function refName(){ const me=H[state.h];
+  switch(state.ref){
+    case 'group_region': return `กลุ่ม ${me.g||'(ไม่มี GroupName)'} ทั้งเขต`;
+    case 'group_prov': return `กลุ่ม ${me.g||'(ไม่มี GroupName)'} ใน${me.p}`;
+    case 'size_region': return `ขนาด ${me.s||'(ไม่มีขนาด)'} ทั้งเขต`;
+    case 'prov': return `จังหวัด${me.p}`;
+    case 'region': return 'ทั้งเขต 1';
+    case 'custom': return 'รพ. ที่เลือกเอง';
+  }
+}
+function cagr(vals, ipGuard){
+  // อัตราโตต่อปีช่วง 5 ปีเต็มหลังสุด (IP เริ่มนับจาก 2563 ตาม R-2)
+  const minY = ipGuard ? 2563 : YEARS[0];
+  const idx = [];
+  for (let i=0;i<NY;i++) if (YEARS[i]!==PARTIAL && YEARS[i]>=minY && vals[i]!=null && vals[i]>0) idx.push(i);
+  const use = idx.slice(-6); // สูงสุด 6 จุด = ช่วง 5 ปี
+  if (use.length<2) return null;
+  const a=use[0], b=use[use.length-1], yrs=YEARS[b]-YEARS[a];
+  if (yrs<1) return null;
+  return {rate: Math.pow(vals[b]/vals[a], 1/yrs)-1, from:YEARS[a], to:YEARS[b]};
+}
+
+// ── controls ──
+function renderControls(){
+  $('sel-hosp').innerHTML = PROVS.map(p=>
+    `<optgroup label="${p}">`+Object.keys(H).filter(h=>H[h].p===p)
+      .sort((a,b)=>H[a].n.localeCompare(H[b].n,'th'))
+      .map(h=>`<option value="${h}" ${h===state.h?'selected':''}>${H[h].n.replace('โรงพยาบาล','รพ.')}${H[h].s?' ('+H[h].s+')':''}</option>`).join('')+'</optgroup>').join('');
+  $('sel-report').innerHTML = GROUPS.map(([g,keys])=>
+    `<optgroup label="${g}">`+keys.filter(k=>AGG.reports[k]).map(k=>
+      `<option value="${k}" ${k===state.report?'selected':''}>${AGG.reports[k].label}</option>`).join('')+'</optgroup>').join('');
+  $('sel-ref').innerHTML = REF_MODES.map(([v,l])=>`<option value="${v}" ${v===state.ref?'selected':''}>${l}</option>`).join('');
+  $('sel-peers').innerHTML = PROVS.map(p=>
+    `<optgroup label="${p}">`+Object.keys(H).filter(h=>H[h].p===p && h!==state.h)
+      .map(h=>`<option value="${h}" ${state.peers.includes(h)?'selected':''}>${H[h].n.replace('โรงพยาบาล','รพ.')}</option>`).join('')+'</optgroup>').join('');
+  renderMetricSel();
+}
+function renderMetricSel(){
+  const ms = AGG.reports[state.report].metrics;
+  if (!ms[state.metric]) state.metric = metricPref(ms);
+  $('sel-metric').innerHTML = Object.entries(ms).map(([k,th])=>
+    `<option value="${k}" ${k===state.metric?'selected':''}>${th}</option>`).join('');
+}
+
+// ── charts ──
+const tip = $('tooltip');
+function attachTip(el, textFn){
+  el.addEventListener('mousemove', e=>{ tip.textContent=textFn(); tip.style.display='block';
+    tip.style.left=Math.min(e.clientX+14, innerWidth-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-30)+'px'; });
+  el.addEventListener('mouseleave', ()=> tip.style.display='none');
+}
+function mainChart(svg, hosp, ref, div, ulab, refNote){
+  const W=900, Hh=240, padL=8,padR=8,padT=26,padB=20;
+  svg.setAttribute('viewBox',`0 0 ${W} ${Hh}`);
+  const iw=W-padL-padR, ih=Hh-padT-padB;
+  const nums=[...hosp,...ref].filter(v=>v!=null);
+  if(!nums.length){ svg.innerHTML=`<text x="${W/2}" y="${Hh/2}" text-anchor="middle" font-size="12" fill="var(--ink-3)">ไม่มีข้อมูล</text>`; return; }
+  const max=Math.max(...nums,1e-9), n=NY;
+  let s='';
+  for(const f of [0.5,1]){
+    const gy = padT+ih-ih*f;
+    s+=`<line x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke="var(--grid)" stroke-width="1"/>`;
+    s+=`<text x="${padL}" y="${gy-4}" font-size="9.5" fill="var(--ink-3)">${fmt(max*f/div)}</text>`;
+  }
+  if (refNote) s+=`<text x="${W-padR}" y="14" text-anchor="end" font-size="11" fill="var(--warn)">${refNote}</text>`;
+  const X=i=> n>1 ? padL+iw*i/(n-1) : padL+iw/2, Y=v=>padT+ih-ih*v/max;
+  hosp.forEach((v,i)=>{ const anchor = i===0?'start':i===n-1?'end':'middle';
+    s+=`<text x="${X(i)}" y="${Hh-5}" text-anchor="${anchor}" font-size="10" fill="var(--ink-3)">${YEARS[i]}</text>`; });
+  function drawLine(series, color, width, dashPartial){
+    let seg=[], out='';
+    const flush=(dashed)=>{ if(seg.length>=2){ out+=`<path d="${seg.map((p,k)=>(k===0?'M':'L')+p[0]+','+p[1]).join(' ')}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round" ${dashed?'stroke-dasharray="5 4"':''}/>`; } seg=[]; };
+    series.forEach((v,i)=>{
+      if(v==null){ flush(false); return; }
+      const pt=[X(i),Y(v)];
+      if (YEARS[i]===PARTIAL && seg.length){ const prev=seg[seg.length-1]; flush(false); seg=[prev,pt]; flush(true); seg=[pt]; return; }
+      seg.push(pt);
+    });
+    flush(false);
+    series.forEach((v,i)=>{ if(v==null) return;
+      const partial = YEARS[i]===PARTIAL;
+      out += `<circle cx="${X(i)}" cy="${Y(v)}" r="${partial?4:3.5}" fill="${partial?'var(--card)':color}" stroke="${color}" stroke-width="${partial?2:0}"/>`;
+    });
+    return out;
+  }
+  s += drawLine(ref, 'var(--blue)', 2);
+  s += drawLine(hosp, 'var(--accent)', 3);
+  s+=`<line x1="${padL}" y1="${padT+ih}" x2="${W-padR}" y2="${padT+ih}" stroke="var(--line)" stroke-width="1.5"/>`;
+  s+=`<line id="mh-xhair" x1="0" y1="${padT}" x2="0" y2="${padT+ih}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 2" opacity="0"/>`;
+  svg.innerHTML=s;
+  const xhair = svg.querySelector('#mh-xhair');
+  svg.addEventListener('mousemove', e=>{
+    const rect=svg.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(W/rect.width);
+    let i = n>1 ? Math.round((mx-padL)/(iw/(n-1))) : 0;
+    i = Math.max(0, Math.min(n-1,i));
+    if (hosp[i]==null && ref[i]==null){ xhair.setAttribute('opacity','0'); tip.style.display='none'; return; }
+    xhair.setAttribute('x1',X(i)); xhair.setAttribute('x2',X(i)); xhair.setAttribute('opacity','1');
+    let t=`ปีงบ ${YEARS[i]}: ${fmt(hosp[i]!=null?hosp[i]/div:null)} ${ulab}`;
+    if(ref[i]!=null) t+=` · กลุ่ม ${fmt(ref[i]/div)}`;
+    if(YEARS[i]===PARTIAL) t+=' · ไม่เต็มปี';
+    tip.textContent=t; tip.style.display='block';
+    tip.style.left=Math.min(e.clientX+14, innerWidth-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-30)+'px';
+  });
+  svg.addEventListener('mouseleave', ()=>{ xhair.setAttribute('opacity','0'); tip.style.display='none'; });
+}
+function dotPlot(svg, values, selfVal, div){
+  const W=300, Hh=90, pad=14;
+  svg.setAttribute('viewBox',`0 0 ${W} ${Hh}`);
+  const vs = values.filter(v=>v!=null&&isFinite(v));
+  if(!vs.length && selfVal==null){ svg.innerHTML=''; return; }
+  const all=[...vs, ...(selfVal!=null?[selfVal]:[])];
+  const mn=Math.min(...all), mx=Math.max(...all), span=(mx-mn)||1;
+  const X=v=>pad+(W-2*pad)*(v-mn)/span;
+  let s=`<line x1="${pad}" y1="45" x2="${W-pad}" y2="45" stroke="var(--line)" stroke-width="1.5"/>`;
+  for(const v of vs) s+=`<circle cx="${X(v)}" cy="45" r="5" fill="var(--blue)" fill-opacity="0.45"/>`;
+  const md=median(vs);
+  if(md!=null) s+=`<line x1="${X(md)}" y1="28" x2="${X(md)}" y2="62" stroke="var(--blue)" stroke-width="2" stroke-dasharray="3 2"/><text x="${X(md)}" y="22" text-anchor="middle" font-size="9" fill="var(--blue)">มัธยฐาน</text>`;
+  if(selfVal!=null) s+=`<circle cx="${X(selfVal)}" cy="45" r="7" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/><text x="${X(selfVal)}" y="78" text-anchor="middle" font-size="9" fill="var(--accent)">รพ.นี้</text>`;
+  s+=`<text x="${pad}" y="${Hh-2}" font-size="8.5" fill="var(--ink-3)">${fmt(mn/div)}</text><text x="${W-pad}" y="${Hh-2}" text-anchor="end" font-size="8.5" fill="var(--ink-3)">${fmt(mx/div)}</text>`;
+  svg.innerHTML=s;
+}
+
+// ── narrative ──
+function buildNarrative(hospN, refN, members, div, ulab){
+  const items=[];
+  const me=H[state.h];
+  const ip = IP_REPORTS.includes(state.report);
+  const li = lastFull(hospN);
+  const mlabel = AGG.reports[state.report].metrics[state.metric];
+  const nLbl = state.ref==='custom' ? `เทียบ รพ.ที่เลือก ${members.length} แห่ง` : `${refName()} (n=${members.length} ไม่รวม รพ.นี้)`;
+  if (li<0){ items.push(['ℹ️','ไม่มีข้อมูลปีเต็มของตัวชี้วัดนี้ — อาจเป็นโครงการที่เพิ่งเริ่ม หรือ รพ. ไม่มีบริการนี้']); return items; }
+  // 1) เทรนด์ตัวเอง
+  const g = cagr(hospN, ip);
+  if (g){
+    const dir = g.rate>=0.005?'▲ โต':g.rate<=-0.005?'▼ ลดลง':'→ ทรงตัว';
+    let t = `${mlabel}: <b>${dir} ${fmt(Math.abs(g.rate)*100,1)}%/ปี</b> ช่วงปีงบ ${g.from}→${g.to}`;
+    const gr = cagr(refN, ip);
+    if (gr) t += ` — ${g.rate>gr.rate+0.002?'เร็วกว่า':g.rate<gr.rate-0.002?'ช้ากว่า':'พอๆ กับ'}มัธยฐานกลุ่ม (${fmt(gr.rate*100,1)}%/ปี)`;
+    items.push([g.rate>=0?'📈':'📉', t]);
+  }
+  // 2) ระดับปีล่าสุด vs กลุ่ม
+  if (refN[li]!=null && refN[li]>0){
+    const diff=(hospN[li]-refN[li])/refN[li]*100;
+    items.push([Math.abs(diff)<5?'⚖️':diff>0?'🟢':'🟠',
+      `ปีงบ ${YEARS[li]}: <b>${fmt(hospN[li]/div)} ${ulab}</b> ${diff>=0?'สูงกว่า':'ต่ำกว่า'}มัธยฐานกลุ่ม <b>${fmt(Math.abs(diff),1)}%</b> (กลุ่ม ${fmt(refN[li]/div)})`]);
+  } else if (members.length===1){
+    const pv = serAct(members[0]);
+    if (pv && pv[li]!=null) items.push(['👥',`กลุ่มเทียบมีสมาชิกเดียว (${H[members[0]].n.replace('โรงพยาบาล','รพ.')}) — ปีงบ ${YEARS[li]}: รพ.นี้ ${fmt(hospN[li]/div)} vs ${fmt(pv[li]/div)} ${ulab}`]);
+  } else if (!members.length){
+    items.push(['👥','กลุ่มเปรียบเทียบนี้ไม่มีสมาชิกอื่นนอกจาก รพ. นี้เอง — ลองเปลี่ยนเส้นอ้างอิงหรือเลือก รพ. เทียบเอง']);
+  }
+  // 3) อันดับ
+  const ranked = [state.h, ...members].map(x=>{ const s=serAct(x); return {x, v:s?s[li]:null}; })
+    .filter(o=>o.v!=null).sort((a,b)=>b.v-a.v);
+  const pos = ranked.findIndex(o=>o.x===state.h)+1;
+  if (pos>0 && ranked.length>1){
+    const pct = pos<=Math.ceil(ranked.length*0.25)?'อยู่ในกลุ่มบนสุด (Top 25%)':pos>ranked.length*0.75?'อยู่ในกลุ่มล่าง':'อยู่กลางกลุ่ม';
+    items.push(['🏁',`อันดับ <b>${pos} จาก ${ranked.length}</b> (รวม รพ.นี้) — ${pct}${USE_NORM?' เมื่อคิด'+($('sel-norm').selectedOptions[0].text):''}`]);
+  }
+  // 4) ธงข้อมูล
+  if (ip) items.push(['⚠️','รายงาน IP: ปี 2560–2562 เป็นช่วงเริ่มระบบ ไม่ถูกนำมาคิดอัตราโต (กติกา R-2)']);
+  const pi=YEARS.indexOf(PARTIAL);
+  if (hospN[pi]!=null) items.push(['🕗',`ปีงบ ${PARTIAL} (~9 เดือน): ${fmt(hospN[pi]/div)} ${ulab} — ยังไม่นำมาเทียบ/จัดอันดับ`]);
+  if (state.norm!=='raw' && !divisor(state.h)) items.push(['ℹ️','รพ. นี้ไม่มีตัวหาร (เตียง/ประชากร) — แสดงค่าดิบแทน']);
+  return items;
+}
+
+// ── main render ──
+function renderAll(){
+  const me = H[state.h];
+  // sync URL (deep-link)
+  history.replaceState(null,'',`?h=${state.h}&r=${state.report}&m=${state.metric}`);
+  $('peer-fld').classList.toggle('hidden', state.ref!=='custom');
+  // ตัวหารใช้ไม่ได้ -> fallback ค่าดิบ
+  let normNote='';
+  if (state.norm!=='raw' && !divisor(state.h)){ normNote=' (รพ.นี้ไม่มีตัวหาร — เทียบด้วยค่าดิบทั้งกลุ่มแทน)'; }
+  USE_NORM = state.norm!=='raw' && !!divisor(state.h);
+  const hospN = serAct(state.h);
+  const members = groupMembers().filter(x=> !USE_NORM || divisor(x));
+  const refN = (function(){ // ref series ใช้ normalization เดียวกับ รพ. เสมอ
+    const out=Array(NY).fill(null);
+    const per = members.map(x=>serAct(x)).filter(Boolean);
+    for(let i=0;i<NY;i++) out[i]=median(per.map(s=>s[i]));
+    return out;
+  })();
+
+  $('h-name').textContent = me.n;
+  $('h-chips').innerHTML = [
+    `<span class="chip">${me.p}</span>`,
+    me.s?`<span class="chip">ขนาด ${me.s}</span>`:'',
+    me.g?`<span class="chip b">${me.g}</span>`:'',
+    me.a==='นอก สธ.'?`<span class="chip w">นอกสังกัด สธ.</span>`:'',
+    me.b?`<span class="chip b">${me.b} เตียง</span>`:'',
+    me.pop?`<span class="chip b">ปชก.UC ${fmt(me.pop,0)}</span>`:'',
+  ].join('');
+
+  const mlabel = AGG.reports[state.report].metrics[state.metric];
+  const div = unitOf(hospN), ulab = unitLbl(div, state.metric);
+  const nTxt = state.ref==='custom'?`รพ.เทียบ ${members.length} แห่ง`:`${refName()} · n=${members.length} (ไม่รวม รพ.นี้)`;
+  $('narr-ctx').textContent = `${AGG.reports[state.report].label} · ${mlabel}${state.norm!=='raw'?' · '+$('sel-norm').selectedOptions[0].text:''} · เทียบ: ${nTxt}${normNote}`;
+  $('narr-list').innerHTML = buildNarrative(hospN, refN, members, div, ulab)
+    .map(([ic,t])=>`<li><span class="ic">${ic}</span><span>${t}</span></li>`).join('');
+
+  $('chart-title').textContent = `${mlabel} — ${me.n.replace('โรงพยาบาล','รพ.')} เทียบมัธยฐานกลุ่ม`;
+  $('chart-sub').textContent = `หน่วย: ${ulab} · เส้นเขียว = รพ.นี้ · เส้นน้ำเงิน = มัธยฐาน${refName()} · ช่วงประ+จุดโปร่ง = ปีงบ ${PARTIAL} ไม่เต็มปี`;
+  const refNote = refN.every(v=>v==null)
+    ? (state.ref==='custom'
+        ? (state.peers.length ? 'รพ.ที่เลือกเทียบไม่มีข้อมูลตัวชี้วัดนี้' : '⚠ ยังไม่ได้เลือก รพ. เทียบ — เลือกในช่องด้านบน')
+        : '⚠ กลุ่มเทียบนี้ไม่มีสมาชิกอื่น (n=0) — ไม่มีเส้นอ้างอิง ลองเปลี่ยนเส้นอ้างอิง')
+    : '';
+  mainChart($('main-chart'), hospN, refN, div, ulab, refNote);
+  $('chart-legend').innerHTML = `
+    <span><span class="sw" style="background:var(--accent)"></span>${me.n.replace('โรงพยาบาล','รพ.')}</span>
+    <span><span class="sw line" style="background:var(--blue)"></span>มัธยฐาน ${refName()} (n=${members.length})</span>`;
+
+  // rank card
+  const li = lastFull(hospN);
+  const vals = members.map(x=>serAct(x)).filter(Boolean).map(s=>li>=0?s[li]:null);
+  const ranked=[hospN[li], ...vals].filter(v=>v!=null).sort((a,b)=>b-a);
+  const pos = li>=0&&hospN[li]!=null ? ranked.indexOf(hospN[li])+1 : 0;
+  $('rank-sub').textContent = li>=0?`ปีงบ ${YEARS[li]} · ${refName()}`:'';
+  $('rank-val').textContent = pos>0?`${pos} / ${ranked.length}`:'–';
+  $('rank-note').textContent = pos>0?(ranked.length===1?'กลุ่มนี้มีเฉพาะ รพ.นี้ (n=1 ตามจริง)':''):'ไม่มีข้อมูลจัดอันดับ';
+  dotPlot($('dot-chart'), vals, li>=0?hospN[li]:null, div);
+
+  // metric table
+  renderMetricTable(members);
+  // code-level breakdown (budget/statementuc/eclaimdata/dmis/instrument_bycode/carrefer_subfund ฯลฯ)
+  renderCodeTable();
+}
+
+// ── code-level breakdown (lazy shard) ──
+const shardCache = {};
+function loadShard(h){
+  return new Promise((res, rej)=>{
+    if (shardCache[h]) return res(shardCache[h]);
+    window.MISHOS_HOSP_CB = d => { shardCache[d.hcode]=d; res(d); };
+    const sc = document.createElement('script');
+    sc.src = `data/hosp/H${h}.js`;
+    sc.onerror = ()=>rej(new Error('โหลดข้อมูลไม่ได้'));
+    document.body.appendChild(sc);
+  });
+}
+let codeReqId = 0;
+async function renderCodeTable(){
+  const card = $('code-card');
+  if (AGG.reports[state.report].kind !== 'breakdown'){ card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  const reqId = ++codeReqId;
+  $('code-sub').textContent = 'กำลังโหลด…';
+  $('code-table').innerHTML = '';
+  let d;
+  try { d = await loadShard(state.h); } catch(e){ $('code-sub').textContent = 'โหลดข้อมูลไม่สำเร็จ'; return; }
+  if (reqId !== codeReqId) return; // ผู้ใช้เปลี่ยน รพ./รายงานระหว่างโหลด — ทิ้งผลเก่า
+  const byFy = d.breakdown[state.report] || {};
+  const fys = Object.keys(byFy).map(Number).filter(fy=>fy!==PARTIAL).sort((a,b)=>b-a);
+  const fy = fys[0];
+  if (!fy){ $('code-sub').textContent = 'ไม่มีข้อมูลแยกรหัสของปีงบเต็มสำหรับ รพ.นี้'; return; }
+  const rows = Object.entries(byFy[fy]).map(([code,row])=>({code, ...row}))
+    .filter(r=>r.v[state.metric]!=null).sort((a,b)=>b.v[state.metric]-a.v[state.metric]);
+  const mlabel = AGG.reports[state.report].metrics[state.metric];
+  $('code-sub').textContent = `ปีงบ ${fy} · ${mlabel} · เรียงมาก→น้อย · ${rows.length} รหัส`;
+  if (!rows.length){ $('code-table').innerHTML = ''; $('code-sub').textContent += ' (ไม่มีค่าของตัวชี้วัดนี้)'; return; }
+  const hasParent = rows.some(r=>r.pd);
+  const descTd = t => `<td style="text-align:left;font-family:var(--sans);font-size:12.5px;white-space:normal;max-width:360px">${t||''}</td>`;
+  const codeTd = c => `<td style="text-align:left">${c||'—'}</td>`;
+  $('code-table').innerHTML = '<thead><tr>'+(hasParent?'<th style="text-align:left">หมวดหลัก</th>':'')+'<th style="text-align:left">รหัส</th><th style="text-align:left">รายละเอียด</th><th>ค่า</th></tr></thead><tbody>'+
+    rows.map(r=>`<tr>${hasParent?descTd(r.pd):''}${codeTd(r.code)}${descTd(r.d)}<td>${fmt(r.v[state.metric])}</td></tr>`).join('')+
+    '</tbody>';
+}
+function renderMetricTable(members){
+  const ms = AGG.reports[state.report].metrics;
+  const raw = seriesRaw(state.h);
+  let html = '<thead><tr><th>ตัวชี้วัด</th><th>รพ.นี้</th><th>มัธยฐานกลุ่ม</th><th>ต่าง %</th><th>อันดับ</th></tr></thead><tbody>';
+  const saveM = state.metric;
+  for (const m of Object.keys(ms)){
+    state.metric = m;
+    const hv = seriesRaw(state.h), li = lastFull(hv);
+    if (li<0){ html+=`<tr><td>${ms[m]}</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>`; continue; }
+    const mem = members.map(x=>seriesRaw(x)[li]).filter(v=>v!=null);
+    const md = median(mem);
+    const diff = md ? (hv[li]-md)/md*100 : null;
+    const ranked=[hv[li],...mem].filter(v=>v!=null).sort((a,b)=>b-a);
+    const pos = ranked.indexOf(hv[li])+1;
+    html += `<tr><td>${ms[m]}</td><td>${fmt(hv[li])}</td><td>${fmt(md)}</td>
+      <td>${diff==null?'–':`<span class="${diff>=0?'up':'dn'}">${diff>=0?'+':''}${fmt(diff,1)}%</span>`}</td>
+      <td>${pos>0?pos+'/'+ranked.length:'–'}</td></tr>`;
+  }
+  state.metric = saveM;
+  $('tbl-sub').textContent = `ค่าดิบ ปีงบเต็มล่าสุดของแต่ละตัวชี้วัด · กลุ่ม: ${refName()}`;
+  $('metric-table').innerHTML = html + '</tbody>';
+}
+
+// ── events ──
+$('sel-hosp').addEventListener('change', e=>{ state.h=e.target.value; renderControls(); renderAll(); });
+$('sel-report').addEventListener('change', e=>{ state.report=e.target.value; renderMetricSel(); renderAll(); });
+$('sel-metric').addEventListener('change', e=>{ state.metric=e.target.value; renderAll(); });
+$('sel-ref').addEventListener('change', e=>{ state.ref=e.target.value; renderAll(); });
+$('sel-norm').addEventListener('change', e=>{ state.norm=e.target.value; renderAll(); });
+$('sel-peers').addEventListener('change', e=>{ state.peers=[...e.target.selectedOptions].map(o=>o.value); renderAll(); });
+$('theme-toggle').addEventListener('click', ()=>{
+  const next = document.documentElement.dataset.theme==='dark' ? 'light':'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('mishos-theme', next);
+  renderAll();
+});
+$('gen-date').textContent = 'อัปเดตข้อมูล ' + AGG.generated;
+renderControls();
+renderAll();
+</script>
+</body>
+</html>

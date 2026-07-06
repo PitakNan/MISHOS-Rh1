@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script src="theme.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISHOS — เทรนด์ผลงานบริการ เขตสุขภาพที่ 1 (2560–2569)</title>
+<style>
+:root{
+  --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
+  --line:#DCE3DE; --grid:#EDF1EE; --accent:#0E8A5F; --accent-deep:#0A6647; --accent-soft:#E4F1EB;
+  --blue:#3568C0; --warn:#A9701F; --warn-soft:#F5E9D7;
+  --mono:ui-monospace,"SF Mono","Consolas",monospace;
+  --sans:"Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif;
+}
+:root[data-theme="dark"]{
+  --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+  --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+  --blue:#5590DD; --warn:#E3A857; --warn-soft:#3A2C15;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+    --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+    --blue:#5590DD; --warn:#E3A857; --warn-soft:#3A2C15;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 22px 80px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+header h1{font-size:19px;font-weight:700;margin:0}
+header .sub{font-size:12px;color:var(--ink-2);font-family:var(--mono)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;
+  padding:6px 12px;font-size:12.5px;font-family:var(--sans);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.btn:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--card);
+  border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px}
+.controls label{font-size:12px;color:var(--ink-2)}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;
+  background:var(--card);color:var(--ink);font-family:var(--sans);max-width:330px}
+.chip{font-size:11.5px;background:var(--warn-soft);color:var(--warn);border-radius:20px;
+  padding:3px 11px;font-weight:600;white-space:nowrap}
+.spacer{flex:1}
+
+.hero{display:grid;grid-template-columns:280px 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:860px){.hero{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.stat .lbl{font-size:12px;color:var(--ink-2)}
+.stat .big{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15;margin:2px 0}
+.stat .unit{font-size:13px;color:var(--ink-2);font-weight:400}
+.stat .delta{font-size:13px;font-weight:600}
+.stat .ytd{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--ink-2)}
+.stat .ytd b{font-variant-numeric:tabular-nums}
+.card h3{margin:0 0 2px;font-size:14.5px;font-weight:700}
+.card .csub{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin:0 0 6px}
+
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:1080px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.mini{cursor:pointer;transition:border-color .12s}
+.mini:hover{border-color:var(--accent)}
+.mini.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.mini h4{margin:0;font-size:13.5px;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.mini h4 .v{font-family:var(--mono);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--mono)}
+.bar{transition:opacity .1s}
+.bar:hover{opacity:.72}
+
+.section-h{display:flex;align-items:baseline;gap:10px;margin:20px 0 10px;flex-wrap:wrap}
+.section-h h2{font-size:15px;margin:0;font-weight:700}
+.section-h .note{font-size:12px;color:var(--ink-2)}
+
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink-3);text-align:right;
+  padding:7px 9px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:6px 9px;border-bottom:1px solid var(--grid);text-align:right;
+  font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12px}
+td:first-child{text-align:left;font-family:var(--sans);font-size:12.5px}
+tr:hover td{background:var(--accent-soft)}
+
+#tooltip{position:fixed;pointer-events:none;background:var(--ink);color:var(--page);
+  font-size:12px;font-family:var(--mono);padding:5px 9px;border-radius:6px;z-index:50;
+  display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;
+  align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--card);border-radius:12px;max-width:760px;width:100%;max-height:88vh;
+  overflow-y:auto;padding:20px 22px;border:1px solid var(--line)}
+.modal .mh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.modal h3{margin:0 0 2px;font-size:16px}
+.fy-chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.fy-chips .btn{padding:3px 10px;font-size:12px;font-family:var(--mono)}
+.hidden{display:none}
+footer{margin-top:34px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>📈 เทรนด์ผลงานบริการ — เขตสุขภาพที่ 1</h1>
+      <div class="sub">MISHOS (สปสช.) · ปีงบ 2560–2569 · <span id="gen-date"></span></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="tbl-toggle" aria-pressed="false">☰ ดูตาราง</button>
+      <button class="btn" id="theme-toggle" title="สลับโหมดสว่าง/มืด">◐ โหมดสี</button>
+    </div>
+  </header>
+
+  <nav class="pagenav" style="display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--line)">
+    <a href="index.html" aria-current="page" class="on">📈 เทรนด์ภาพรวม</a>
+    <a href="hospital.html">🏥 วิเคราะห์รายโรง</a>
+    <a href="rank.html">🏆 จัดอันดับ</a>
+    <a href="risk.html">⚠️ เงินเสี่ยง</a>
+  </nav>
+  <style>.pagenav a{padding:8px 16px;font-size:13.5px;color:var(--ink-2);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px}.pagenav a.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}.pagenav a:hover{color:var(--accent)}</style>
+
+  <div class="controls">
+    <label>รายงาน <select id="sel-report"></select></label>
+    <label>ตัวชี้วัด <select id="sel-metric"></select></label>
+    <button class="btn" id="aff-toggle" aria-pressed="false" title="ตัดหน่วยนอกสังกัด สป.สธ. (28 แห่ง) ออกจากยอดรวม">เฉพาะ สธ. 103 แห่ง</button>
+    <span class="spacer"></span>
+    <span class="chip">⚠ ปีงบ 2569 มีข้อมูล ~9 เดือน — แท่งโปร่ง+เส้นประ</span>
+  </div>
+
+  <div class="hero">
+    <div class="card stat">
+      <div class="lbl" id="stat-lbl">ยอดรวมทั้งเขต ปีงบ 2568</div>
+      <div class="big"><span id="stat-val">–</span> <span class="unit" id="stat-unit"></span></div>
+      <div class="delta" id="stat-delta"></div>
+      <div class="ytd" id="stat-ytd"></div>
+    </div>
+    <div class="card">
+      <h3>ภาพรวมทั้งเขต</h3>
+      <p class="csub" id="region-sub"></p>
+      <svg id="region-chart" viewBox="0 0 960 200" role="img" aria-label="กราฟแท่งยอดรวมทั้งเขตรายปีงบ"></svg>
+    </div>
+  </div>
+
+  <div id="chart-view">
+    <div class="section-h">
+      <h2>รายจังหวัด</h2><span class="note">คลิกจังหวัดเพื่อเจาะดูรายโรงพยาบาล — กราฟคนละสเกล เทียบ "รูปทรง" ไม่ใช่ความสูง</span>
+    </div>
+    <div class="grid" id="prov-grid"></div>
+
+    <div id="hosp-section" class="hidden">
+      <div class="section-h">
+        <h2 id="hosp-title"></h2>
+        <span class="note">เรียงตามยอดปีเต็มล่าสุด · คลิก รพ. เพื่อดูรายเดือน</span>
+        <span class="spacer"></span>
+        <button class="btn" id="hosp-more">แสดงทั้งหมด</button>
+      </div>
+      <div class="grid" id="hosp-grid"></div>
+    </div>
+  </div>
+
+  <div id="table-view" class="hidden">
+    <div class="section-h"><h2>ตารางยอดรายปี — รายจังหวัด</h2><span class="note" id="tbl-unit-note"></span></div>
+    <div class="card" style="overflow-x:auto"><table id="prov-table"></table></div>
+  </div>
+
+  <footer>
+    แหล่งข้อมูล: mishos.nhso.go.th (ดึง 4–5 ก.ค. 2569) · ยอดปีคือผลรวม 12 เดือนปีงบประมาณ ·
+    เดือน ก.ย. ของทุกปีรวมยอดเคลมส่งช้า (ดูรายเดือนโปรดระวัง) · RATE/อัตราต่อครั้ง คำนวณจาก เงิน÷ครั้ง ไม่เก็บตรง
+  </footer>
+</div>
+<div id="tooltip"></div>
+<div id="modal-root"></div>
+
+<script src="data/agg_annual.js"></script>
+<script>
+'use strict';
+const AGG = window.MISHOS_AGG;
+const YEARS = AGG.years, NY = YEARS.length, PARTIAL = AGG.partial_fy;
+const H = AGG.hospitals;
+const PROVS = ['เชียงใหม่','ลำพูน','ลำปาง','แพร่','น่าน','พะเยา','เชียงราย','แม่ฮ่องสอน'];
+const IP_REPORTS = ['ip_ipservice0102','ip_ipmonitor']; // ปีงบ 2560-2562 เป็นช่วงเริ่มระบบ ไม่น่าเชื่อถือสำหรับเทียบอัตราโต (ดู R-2)
+const THAI_M = ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
+const GROUPS = [
+ ['การเงิน / รายรับ', ['budget','statementuc']],
+ ['ผู้ป่วยใน', ['ip_ipservice0102','ip_ipmonitor']],
+ ['บริการเฉพาะทาง', ['central_stemi','central_cancer','central_cataract','central_stone','central_instrument_bycode','central_instrument_month','central_palliativecare']],
+ ['ผู้ป่วยนอก / ฉุกเฉิน', ['central_opae','central_carrefer_month','central_carrefer_subfund','op_opwalkin','op_opontop_province','op_opontop_network']],
+ ['ส่งเสริมป้องกัน (PP)', ['pp_ppfee','pp_healthcheck']],
+ ['นโยบาย / โครงการใหม่', ['policy_cancerany','policy_change_right','policy_telemed','dmis_ckd','dmis_moph','dmis_ktp']],
+ ['คุณภาพข้อมูลเบิก', ['eclaimdata_uc_op','eclaimdata_uc_ip','eclaimdata_other_op','eclaimdata_other_ip']],
+ ['สิทธิอื่น (ขรก./อปท.)', ['other_csmbs','other_lgo']],
+];
+let state = { report:'budget', metric:'BUDGET', mophOnly:false, prov:null, showAllHosp:false, table:false };
+
+// ── helpers ──
+const $ = id => document.getElementById(id);
+function metricPref(ms){ // เลือก metric ตั้งต้น: เงิน > ครั้ง > ตัวแรก
+  const keys = Object.keys(ms);
+  return keys.find(k=>/AMT|BUDGET/.test(k) && !/RATE/.test(k)) || keys.find(k=>/NUM|VISIT|DAY_SUM/.test(k)) || keys[0];
+}
+function unitOf(vals){
+  const mx = Math.max(...vals.filter(v=>v!=null).map(Math.abs), 0);
+  if (mx >= 1e6) return ['ล้านบาท/ล้านหน่วย', 1e6, 1];
+  if (mx >= 1e4) return ['พัน', 1e3, 1];
+  return ['หน่วย', 1, 0];
+}
+function fmt(v, dec){ if(v==null) return '–'; const av=Math.abs(v);
+  const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
+  return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
+function unitLabel(div){
+  const base = /AMT|BUDGET/.test(state.metric) ? 'บาท' : /ADJRW/.test(state.metric) ? 'AdjRW' : 'ครั้ง';
+  return div===1e6 ? 'ล้าน'+base : div===1e3 ? 'พัน'+base : base;
+}
+
+function hospSet(){
+  return Object.keys(H).filter(h => !state.mophOnly || H[h].a === 'สธ.');
+}
+function seriesSum(hcodes){
+  const out = Array(NY).fill(null);
+  for (const h of hcodes){
+    const arr = AGG.annual[h]?.[state.report]?.[state.metric];
+    if (!arr) continue;
+    for (let i=0;i<NY;i++) if (arr[i]!=null) out[i] = (out[i]||0) + arr[i];
+  }
+  return out;
+}
+function seriesHosp(h){
+  return (AGG.annual[h]?.[state.report]?.[state.metric]) || Array(NY).fill(null);
+}
+function lastFull(vals){ // index ปีเต็มล่าสุดที่มีข้อมูล
+  for (let i=NY-1;i>=0;i--) if (YEARS[i]!==PARTIAL && vals[i]!=null) return i;
+  return -1;
+}
+
+// ── chart renderer: line + crosshair (trend-first — see dataviz interaction guidance) ──
+const tip = $('tooltip');
+function lineChart(svg, vals, opt={}){
+  const W = opt.w||300, Hh = opt.h||150, padL=8,padR=8,padT=opt.padT||20,padB=18;
+  svg.setAttribute('viewBox',`0 0 ${W} ${Hh}`);
+  const iw=W-padL-padR, ih=Hh-padT-padB;
+  const nums = vals.filter(v=>v!=null);
+  if (!nums.length){ svg.innerHTML=`<text x="${W/2}" y="${Hh/2}" text-anchor="middle" font-size="11" fill="var(--ink-3)">ไม่มีข้อมูล</text>`; return; }
+  const max = Math.max(...nums, 1e-9), min = Math.min(0, ...nums);
+  const n = vals.length;
+  const X = i => n>1 ? padL + iw*i/(n-1) : padL+iw/2;
+  const Y = v => padT + ih - ih*(v-min)/((max-min)||1);
+  let s='';
+  for (const f of [0.5,1]) s += `<line x1="${padL}" y1="${padT+ih-ih*f}" x2="${W-padR}" y2="${padT+ih-ih*f}" stroke="var(--grid)" stroke-width="1"/>`;
+  const peak = vals.indexOf(Math.max(...nums));
+  const firstIdx = vals.findIndex(v=>v!=null);
+  const lastIdx = n-1-[...vals].reverse().findIndex(v=>v!=null);
+  const showEveryLbl = n<=13;
+  if (opt.yearMarks){
+    for (const {i, label} of opt.yearMarks){
+      s += `<line x1="${X(i)}" y1="${padT}" x2="${X(i)}" y2="${padT+ih}" stroke="var(--line)" stroke-width="1"/>`;
+      s += `<text x="${X(i)}" y="${Hh-5}" text-anchor="start" font-size="${opt.fs||9}" fill="var(--ink-3)">${label}</text>`;
+    }
+  } else {
+    vals.forEach((v,i)=>{
+      const xl = opt.labels ? opt.labels[i] : String(YEARS[i]).slice(2);
+      if (showEveryLbl ? (i%2===0||i===n-1) : (i%Math.ceil(n/13)===0))
+        s += `<text x="${X(i)}" y="${Hh-5}" text-anchor="middle" font-size="${opt.fs||9}" fill="var(--ink-3)">${xl}</text>`;
+    });
+  }
+  // segments — break the line at gaps (null), dash the segment leading into the partial period
+  let seg = [];
+  const flushSeg = (dashed) => {
+    if (seg.length<2){ seg=[]; return; }
+    let d = seg.map((p,k)=>(k===0?'M':'L')+p[0]+','+p[1]).join(' ');
+    s += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" ${dashed?'stroke-dasharray="5 4"':''}/>`;
+    seg=[];
+  };
+  vals.forEach((v,i)=>{
+    if (v==null){ flushSeg(false); return; }
+    const pt = [X(i), Y(v)];
+    if (opt.partialIdx===i && seg.length){ const prev=seg[seg.length-1]; flushSeg(false); seg=[prev,pt]; flushSeg(true); seg=[pt]; return; }
+    seg.push(pt);
+  });
+  flushSeg(false);
+  // markers
+  vals.forEach((v,i)=>{
+    if (v==null) return;
+    const partial = opt.partialIdx===i;
+    s += `<circle cx="${X(i)}" cy="${Y(v)}" r="${partial?3.5:3}" fill="${partial?'var(--card,#fff)':'var(--accent)'}" stroke="var(--accent)" stroke-width="${partial?2:0}"/>`;
+    if (opt.direct && (i===firstIdx || i===peak || i===lastIdx)){
+      const anchor = i===firstIdx&&i!==lastIdx ? 'start' : i===lastIdx&&i!==firstIdx ? 'end' : 'middle';
+      s += `<text x="${X(i)}" y="${Y(v)-8}" text-anchor="${anchor}" font-size="9.5" fill="var(--ink-2)">${fmt(v/(opt.div||1), 0)}</text>`;
+    }
+  });
+  s += `<line x1="${padL}" y1="${padT+ih}" x2="${W-padR}" y2="${padT+ih}" stroke="var(--line)" stroke-width="1.5"/>`;
+  s += `<line id="xhair" x1="0" y1="${padT}" x2="0" y2="${padT+ih}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 2" opacity="0"/>`;
+  svg.innerHTML = s;
+  const xhair = svg.querySelector('#xhair');
+  svg.addEventListener('mousemove', e=>{
+    const rect = svg.getBoundingClientRect();
+    const mx = (e.clientX-rect.left) * (W/rect.width);
+    let i = n>1 ? Math.round((mx-padL)/(iw/(n-1))) : 0;
+    i = Math.max(0, Math.min(n-1, i));
+    if (vals[i]==null){ xhair.setAttribute('opacity','0'); tip.style.display='none'; return; }
+    xhair.setAttribute('x1', X(i)); xhair.setAttribute('x2', X(i)); xhair.setAttribute('opacity','1');
+    const xl = opt.tipLabels ? opt.tipLabels[i] : opt.labels ? opt.labels[i] : 'ปีงบ '+YEARS[i];
+    let txt = `${xl}: ${fmt(vals[i]/(opt.div||1))} ${opt.unit||''}`;
+    if (!opt.labels && !opt.tipLabels && i>0 && vals[i-1] && YEARS[i]!==PARTIAL){
+      if (opt.ipGuard && YEARS[i-1]<2563){
+        txt += ' · ⚠ ปีฐาน IP ช่วงเริ่มระบบ ไม่น่าเชื่อถือ';
+      } else {
+        const yoy = (vals[i]-vals[i-1])/vals[i-1]*100;
+        txt += ` (${yoy>=0?'+':''}${yoy.toFixed(1)}% YoY)`;
+      }
+    }
+    if (!opt.labels && !opt.tipLabels && YEARS[i]===PARTIAL) txt += ' · ไม่เต็มปี';
+    tip.textContent = txt;
+    tip.style.display='block';
+    tip.style.left = Math.min(e.clientX+14, innerWidth-tip.offsetWidth-8)+'px';
+    tip.style.top = (e.clientY-30)+'px';
+  });
+  svg.addEventListener('mouseleave', ()=>{ xhair.setAttribute('opacity','0'); tip.style.display='none'; });
+}
+
+// ── renders ──
+function renderControls(){
+  const selR = $('sel-report');
+  selR.innerHTML = GROUPS.map(([g,keys])=>
+    `<optgroup label="${g}">` + keys.filter(k=>AGG.reports[k]).map(k=>
+      `<option value="${k}" ${k===state.report?'selected':''}>${AGG.reports[k].label}</option>`).join('') + '</optgroup>').join('');
+  renderMetricSel();
+}
+function renderMetricSel(){
+  const ms = AGG.reports[state.report].metrics;
+  if (!ms[state.metric]) state.metric = metricPref(ms);
+  $('sel-metric').innerHTML = Object.entries(ms).map(([k,th])=>
+    `<option value="${k}" ${k===state.metric?'selected':''}>${th}</option>`).join('');
+}
+function renderAll(){
+  const hs = hospSet();
+  const region = seriesSum(hs);
+  const [_, div] = [null, ...unitOf(region)].slice(0,2).length ? unitOf(region).slice(0,2) : ['',1];
+  const u = unitOf(region), udiv = u[1], ulab = unitLabel(udiv);
+  // hero stat
+  const li = lastFull(region);
+  const mlabel = AGG.reports[state.report].metrics[state.metric];
+  $('stat-lbl').textContent = `${mlabel} รวมทั้งเขต · ปีงบ ${li>=0?YEARS[li]:'–'} (ปีเต็มล่าสุด)`;
+  $('stat-val').textContent = li>=0 ? fmt(region[li]/udiv) : '–';
+  $('stat-unit').textContent = ulab;
+  let deltaTxt = '';
+  const ipGuard = IP_REPORTS.includes(state.report);
+  if (li>0 && region[li-1]){
+    if (ipGuard && YEARS[li-1]<2563){
+      deltaTxt = `⚠ ปีงบ ${YEARS[li-1]} เป็นช่วงเริ่มระบบ IP — ไม่ใช้เทียบอัตราโต`;
+      $('stat-delta').style.color = 'var(--warn)';
+    } else {
+      const yoy = (region[li]-region[li-1])/region[li-1]*100;
+      deltaTxt = `${yoy>=0?'▲':'▼'} ${Math.abs(yoy).toFixed(1)}% จากปีงบ ${YEARS[li-1]}`;
+      $('stat-delta').style.color = yoy>=0 ? 'var(--accent)' : 'var(--warn)';
+    }
+  }
+  $('stat-delta').textContent = deltaTxt;
+  const pi = YEARS.indexOf(PARTIAL);
+  $('stat-ytd').innerHTML = region[pi]!=null
+    ? `ปีงบ ${PARTIAL} (~9 เดือน): <b>${fmt(region[pi]/udiv)}</b> ${ulab}`
+    : `ปีงบ ${PARTIAL}: ยังไม่มีข้อมูล`;
+  // region chart
+  $('region-sub').textContent = `${mlabel} · หน่วย: ${ulab||'ตามจริง'} · ${hs.length} หน่วยบริการ`;
+  lineChart($('region-chart'), region, {w:960,h:200,padT:24,direct:true,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
+  // provinces
+  const pg = $('prov-grid'); pg.innerHTML='';
+  for (const p of PROVS){
+    const phs = hs.filter(h=>H[h].p===p);
+    const vals = seriesSum(phs);
+    const l = lastFull(vals);
+    const card = document.createElement('div');
+    card.className = 'card mini' + (state.prov===p?' sel':'');
+    card.innerHTML = `<h4>${p} <span class="v">${l>=0?fmt(vals[l]/udiv):'–'} ${ulab}</span></h4>
+      <p class="csub">${phs.length} หน่วย</p><svg viewBox="0 0 300 110"></svg>`;
+    pg.appendChild(card);
+    lineChart(card.querySelector('svg'), vals, {w:300,h:110,padT:12,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
+    card.addEventListener('click', ()=>{ state.prov = state.prov===p?null:p; state.showAllHosp=false; renderAll();
+      if(state.prov) $('hosp-section').scrollIntoView({behavior:'smooth',block:'nearest'}); });
+  }
+  renderHosp(udiv, ulab, pi);
+  renderTable(udiv, ulab);
+}
+function renderHosp(udiv, ulab, pi){
+  const sec = $('hosp-section');
+  if (!state.prov){ sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  const ipGuard = IP_REPORTS.includes(state.report);
+  const hs = hospSet().filter(h=>H[h].p===state.prov);
+  const ranked = hs.map(h=>{ const v=seriesHosp(h); const l=lastFull(v); return {h, v, last:l>=0?v[l]:null}; })
+    .sort((a,b)=>(b.last||0)-(a.last||0));
+  const show = state.showAllHosp ? ranked : ranked.slice(0,12);
+  $('hosp-title').textContent = `${state.prov} — รายโรงพยาบาล (${ranked.length} หน่วย)`;
+  $('hosp-more').textContent = state.showAllHosp ? 'ย่อเหลือ 12' : `แสดงทั้งหมด ${ranked.length}`;
+  $('hosp-more').style.display = ranked.length>12?'':'none';
+  const g = $('hosp-grid'); g.innerHTML='';
+  for (const {h,v,last} of show){
+    const info = H[h];
+    const card = document.createElement('div');
+    card.className='card mini';
+    card.innerHTML = `<h4>${info.n.replace('โรงพยาบาล','รพ.')} <span class="v">${last!=null?fmt(last/udiv):'–'}</span></h4>
+      <p class="csub">${info.s?info.s+' · ':''}${info.a==='นอก สธ.'?'นอก สธ.':(info.g||'')}</p><svg viewBox="0 0 300 100"></svg>`;
+    g.appendChild(card);
+    lineChart(card.querySelector('svg'), v, {w:300,h:100,padT:10,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
+    card.addEventListener('click', ()=> openHosp(h));
+  }
+}
+function renderTable(udiv, ulab){
+  $('tbl-unit-note').textContent = `หน่วย: ${ulab||'ตามจริง'} · ${AGG.reports[state.report].metrics[state.metric]}`;
+  const hs = hospSet();
+  let html = '<thead><tr><th>จังหวัด</th>' + YEARS.map(y=>`<th>${y}${y===PARTIAL?'*':''}</th>`).join('') + '</tr></thead><tbody>';
+  const totals = Array(NY).fill(null);
+  for (const p of PROVS){
+    const vals = seriesSum(hs.filter(h=>H[h].p===p));
+    vals.forEach((v,i)=>{ if(v!=null) totals[i]=(totals[i]||0)+v; });
+    html += `<tr><td>${p}</td>` + vals.map(v=>`<td>${v==null?'–':fmt(v/udiv)}</td>`).join('') + '</tr>';
+  }
+  html += `<tr style="font-weight:700"><td>รวมเขต</td>` + totals.map(v=>`<td>${v==null?'–':fmt(v/udiv)}</td>`).join('') + '</tr>';
+  html += `</tbody>`;
+  $('prov-table').innerHTML = html;
+}
+
+// ── hospital monthly modal (lazy shard) ──
+const shardCache = {};
+function loadShard(h){
+  return new Promise((res, rej)=>{
+    if (shardCache[h]) return res(shardCache[h]);
+    window.MISHOS_HOSP_CB = d => { shardCache[d.hcode]=d; res(d); };
+    const sc = document.createElement('script');
+    sc.src = `data/hosp/H${h}.js`;
+    sc.onerror = ()=>rej(new Error('โหลดข้อมูลไม่ได้'));
+    document.body.appendChild(sc);
+  });
+}
+async function openHosp(h){
+  const info = H[h];
+  const root = $('modal-root');
+  root.innerHTML = `<div class="modal-bg"><div class="modal"><div class="mh">
+    <div><h3>${info.n}</h3><p class="csub">${info.p} · ${info.s||''} ${info.g||info.a} ${info.b?'· '+info.b+' เตียง':''} ${info.pop?'· ปชก.UC '+fmt(info.pop,0):''}</p></div>
+    <span style="display:flex;gap:6px"><a class="btn" style="text-decoration:none" href="hospital.html?h=${h}&r=${state.report}&m=${state.metric}">🔍 วิเคราะห์เชิงลึก</a><button class="btn" id="m-close">✕ ปิด</button></span></div>
+    <p class="csub" style="margin-top:8px">กำลังโหลดข้อมูลรายเดือน…</p></div></div>`;
+  root.querySelector('.modal-bg').addEventListener('click', e=>{ if(e.target===e.currentTarget) root.innerHTML=''; });
+  $('m-close').addEventListener('click', ()=> root.innerHTML='');
+  let d;
+  try { d = await loadShard(h); } catch(e){ root.querySelector('.csub:last-child').textContent='โหลดข้อมูลไม่สำเร็จ'; return; }
+  const monthly = d.monthly[state.report]?.[state.metric];
+  const modal = root.querySelector('.modal');
+  const mlabel = AGG.reports[state.report].metrics[state.metric];
+  modal.querySelector('.mh + p.csub')?.remove();
+  if (!monthly){
+    modal.insertAdjacentHTML('beforeend', `<p style="font-size:13px;color:var(--ink-2)">รายงานนี้ไม่มีข้อมูลรายเดือน (เป็นยอดรายปี/แยกหมวด) — ดูได้จากกราฟรายปีหน้าหลัก</p>`);
+    return;
+  }
+  const ymKey = (fy,mi)=>{ const mm=(10+mi-1)%12+1, y=mm>=10?fy-1:fy;
+    return `${y}-${String(mm).padStart(2,'0')}`; };
+  const fys = YEARS.filter(fy => THAI_M.some((_,mi)=> monthly[ymKey(fy,mi)]!=null));
+  // เรียงต่อเนื่องทุกปีงบเป็นเส้นเดียว (ไม่ต้องเลือกทีละปีอีกต่อไป)
+  const vals=[], tipLabels=[], yearMarks=[];
+  fys.forEach(fy=>{
+    yearMarks.push({i: vals.length, label: fy});
+    THAI_M.forEach((mn,mi)=>{ vals.push(monthly[ymKey(fy,mi)] ?? null); tipLabels.push(`${mn} ปีงบ${fy}`); });
+  });
+  modal.insertAdjacentHTML('beforeend', `
+    <div class="card" style="padding:12px"><h3 style="font-size:13.5px">รายเดือน ทุกปีงบที่มีข้อมูล (${fys[0]}–${fys[fys.length-1]})</h3>
+    <p class="csub">${mlabel} · ⚠ ก.ย. ของทุกปีรวมยอดเคลมส่งช้า · เส้นแบ่ง = จุดเริ่มปีงบ</p>
+    <svg id="m-chart" viewBox="0 0 ${Math.max(700, fys.length*90)} 190"></svg></div>`);
+  const u = unitOf(vals);
+  lineChart($('m-chart'), vals, {w:Math.max(700, fys.length*90),h:190,padT:20,yearMarks,tipLabels,
+    div:u[1],unit:unitLabel(u[1]),direct:true,fs:10});
+}
+
+// ── events ──
+$('sel-report').addEventListener('change', e=>{ state.report=e.target.value; renderMetricSel(); renderAll(); });
+$('sel-metric').addEventListener('change', e=>{ state.metric=e.target.value; renderAll(); });
+$('aff-toggle').addEventListener('click', e=>{
+  state.mophOnly = !state.mophOnly;
+  e.target.classList.toggle('on', state.mophOnly);
+  e.target.setAttribute('aria-pressed', state.mophOnly);
+  renderAll();
+});
+$('tbl-toggle').addEventListener('click', e=>{
+  state.table = !state.table;
+  e.target.classList.toggle('on', state.table);
+  e.target.setAttribute('aria-pressed', state.table);
+  $('chart-view').classList.toggle('hidden', state.table);
+  $('table-view').classList.toggle('hidden', !state.table);
+});
+$('theme-toggle').addEventListener('click', ()=>{
+  const next = document.documentElement.dataset.theme==='dark' ? 'light':'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('mishos-theme', next);
+  renderAll();
+});
+
+$('gen-date').textContent = 'อัปเดตข้อมูล ' + AGG.generated;
+renderControls();
+renderAll();
+</script>
+</body>
+</html>

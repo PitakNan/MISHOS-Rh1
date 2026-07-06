@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script src="theme.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISHOS — เงินเสี่ยงหลุดมือ</title>
+<style>
+:root{
+  --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
+  --line:#DCE3DE; --grid:#EDF1EE; --accent:#0E8A5F; --accent-soft:#E4F1EB;
+  --blue:#3568C0; --warn:#A9701F; --warn-soft:#F5E9D7; --crit:#C0392B; --crit-soft:#F7E3E0;
+  --mono:ui-monospace,"SF Mono","Consolas",monospace;
+  --sans:"Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif;
+}
+:root[data-theme="dark"]{
+  --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+  --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-soft:#173A34;
+  --blue:#5590DD; --warn:#E3A857; --warn-soft:#3A2C15; --crit:#E5695A; --crit-soft:#3A1F1A;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+    --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-soft:#173A34;
+    --blue:#5590DD; --warn:#E3A857; --warn-soft:#3A2C15; --crit:#E5695A; --crit-soft:#3A1F1A;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 22px 80px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header h1{font-size:19px;font-weight:700;margin:0}
+header .sub{font-size:12px;color:var(--ink-2);font-family:var(--mono)}
+.nav{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--line)}
+.nav a{padding:8px 16px;font-size:13.5px;color:var(--ink-2);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px}
+.nav a.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.nav a:hover{color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:12.5px;font-family:var(--sans);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.controls .fld{display:flex;flex-direction:column;gap:3px}
+.controls label{font-size:11.5px;color:var(--ink-2)}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--ink);font-family:var(--sans)}
+.note-box{display:flex;gap:10px;align-items:flex-start;background:var(--warn-soft);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--ink-2)}
+.note-box b{color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+.card h3{margin:0 0 4px;font-size:14.5px;font-weight:700}
+.csub{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin:0 0 10px}
+.rows{display:flex;flex-direction:column;gap:0}
+.row{display:grid;grid-template-columns:34px 190px 1fr 130px;gap:12px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--grid);cursor:pointer;text-decoration:none;color:inherit}
+.row:hover{background:var(--crit-soft)}
+.row:last-child{border-bottom:none}
+.rank-n{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right}
+.rank-n.crit{color:var(--crit);font-weight:700}
+.hname{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hname .tag{font-size:10.5px;color:var(--ink-3);display:block;font-family:var(--mono)}
+.barwrap{position:relative;height:20px;background:var(--grid);border-radius:4px}
+.barfill{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:var(--crit)}
+.rowval{font-family:var(--mono);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.rowval .d{font-size:10.5px;color:var(--ink-3);display:block}
+.tabbtns{display:flex;gap:6px;margin-bottom:10px}
+.empty{padding:24px;text-align:center;color:var(--ink-3);font-size:13px}
+footer{margin-top:20px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>⚠️ เงินเสี่ยงหลุดมือ</h1>
+    <div class="sub">MISHOS (สปสช.) · ปีงบ 2560–2569 · <span id="gen-date"></span></div></div>
+    <button class="btn" id="theme-toggle">◐ โหมดสี</button>
+  </header>
+  <nav class="nav">
+    <a href="index.html">📈 เทรนด์ภาพรวม</a>
+    <a href="hospital.html">🏥 วิเคราะห์รายโรง</a>
+    <a href="rank.html">🏆 จัดอันดับ</a>
+    <a class="on" href="risk.html" aria-current="page">⚠️ เงินเสี่ยง</a>
+  </nav>
+
+  <div class="controls">
+    <div class="fld"><label>ปีงบ</label><select id="sel-fy"></select></div>
+    <div class="fld"><label>แสดง</label><select id="sel-top"><option value="15">Top 15</option><option value="30">Top 30</option><option value="999">ทั้งหมด</option></select></div>
+  </div>
+
+  <div class="note-box">
+    <span>ℹ️</span>
+    <div><b>หมายเหตุหน่วยวัด:</b> ตัวเลขด้านล่างเป็น <b>AdjRW</b> (น้ำหนักสัมพัทธ์เคส) และ <b>จำนวนครั้ง</b> ไม่ใช่จำนวนเงินบาทโดยตรง — ใช้เป็นตัวชี้ "ปริมาณงานที่เสี่ยง" เพื่อจี้ตามเป็นรายแห่ง ไม่ใช่ยอดเงินที่แม่นยำ (ข้อมูลจาก ip_ipmonitor และ eclaimdata เท่านั้น มีตั้งแต่ปีงบ 2564 เป็นต้นไป)</div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>1 · AdjRW ส่งข้อมูลผู้ป่วยในเกิน 91 วัน (เสี่ยงไม่ได้รับชดเชย)</h3>
+      <p class="csub" id="ip-sub"></p>
+      <div class="rows" id="ip-rows"></div>
+    </div>
+
+    <div class="card">
+      <h3>2 · จำนวนครั้ง Error เคลมที่ยังไม่แก้ไข (NOEDIT) — รวม 4 ประเภทสิทธิ</h3>
+      <p class="csub" id="ec-sub"></p>
+      <div class="tabbtns" id="ec-tabs"></div>
+      <div class="rows" id="ec-rows"></div>
+    </div>
+  </div>
+
+  <footer>คลิกแถวเพื่อดูวิเคราะห์เชิงลึกของโรงพยาบาลนั้น</footer>
+</div>
+
+<script src="data/agg_annual.js"></script>
+<script>
+'use strict';
+const AGG = window.MISHOS_AGG, YEARS = AGG.years, PARTIAL = AGG.partial_fy, H = AGG.hospitals;
+const EC_REPORTS = [
+  ['all','ทุกสิทธิรวมกัน'],
+  ['eclaimdata_uc_op','UC ผู้ป่วยนอก'],
+  ['eclaimdata_uc_ip','UC ผู้ป่วยใน'],
+  ['eclaimdata_other_op','สิทธิอื่น ผู้ป่วยนอก'],
+  ['eclaimdata_other_ip','สิทธิอื่น ผู้ป่วยใน'],
+];
+let state = { fy: null, top: 15, ecView: 'all' };
+const $ = id => document.getElementById(id);
+function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
+  const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
+  return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
+function val(h, report, metric, fyIdx){ const s=AGG.annual[h]?.[report]?.[metric]; return s?s[fyIdx]:null; }
+
+function renderControls(){
+  const fullYears = YEARS.filter(y=>y!==PARTIAL && y>=2564); // eclaimdata/ipmonitor เริ่ม 2564
+  if (!state.fy) state.fy = fullYears[fullYears.length-1];
+  $('sel-fy').innerHTML = fullYears.map(y=>`<option value="${y}" ${y===state.fy?'selected':''}>${y}</option>`).join('');
+  $('ec-tabs').innerHTML = EC_REPORTS.map(([k,l])=>
+    `<button class="btn ${k===state.ecView?'on':''}" data-k="${k}">${l}</button>`).join('');
+  $('ec-tabs').querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ state.ecView=b.dataset.k; renderAll(); }));
+}
+
+function renderRows(el, data, unit, mx, linkQS){
+  if (!data.length){ el.innerHTML = `<div class="empty">ไม่มีข้อมูลปีงบนี้</div>`; return; }
+  el.innerHTML = data.map((o,i)=>{
+    const info = H[o.h];
+    const pct = mx>0 ? o.v/mx*100 : 0;
+    return `<a class="row" href="hospital.html?h=${o.h}${linkQS||''}">
+      <span class="rank-n ${i<3?'crit':''}">${i+1}</span>
+      <span class="hname">${info.n.replace('โรงพยาบาล','รพ.')}<span class="tag">${info.p}${info.s?' · '+info.s:''}</span></span>
+      <span class="barwrap"><span class="barfill" style="width:${pct}%"></span></span>
+      <span class="rowval">${fmt(o.v)} ${unit}${o.pct!=null?`<span class="d">${fmt(o.pct,1)}% ของยอดรวม</span>`:''}</span>
+    </a>`;
+  }).join('');
+}
+
+function renderAll(){
+  const fyIdx = YEARS.indexOf(state.fy);
+  const top = state.top;
+
+  // ── 1) IP late-submission risk (DAY91_ADJRW as % of ADJRW_SUM) ──
+  const ipData = Object.keys(H).map(h=>{
+    const day91 = val(h,'ip_ipmonitor','DAY91_ADJRW',fyIdx);
+    const total = val(h,'ip_ipmonitor','ADJRW_SUM',fyIdx);
+    if (day91==null || !total) return null;
+    return {h, v:day91, pct: total?day91/total*100:null};
+  }).filter(Boolean).sort((a,b)=>b.v-a.v).slice(0,top);
+  $('ip-sub').textContent = `ปีงบ ${state.fy} · เรียงจาก AdjRW เสี่ยงมากสุด · % = สัดส่วนของ AdjRW ทั้งหมดของ รพ.นั้นที่ส่งเกิน 91 วัน`;
+  renderRows($('ip-rows'), ipData, 'AdjRW', Math.max(...ipData.map(o=>o.v),0), '&r=ip_ipmonitor&m=DAY91_ADJRW');
+
+  // ── 2) eclaimdata NOEDIT ──
+  const reports = state.ecView==='all' ? EC_REPORTS.slice(1).map(x=>x[0]) : [state.ecView];
+  const ecData = Object.keys(H).map(h=>{
+    let sumNoedit=0, sumNum=0, has=false;
+    for (const r of reports){
+      const n = val(h,r,'NOEDIT',fyIdx), t = val(h,r,'NUM',fyIdx);
+      if (n!=null){ sumNoedit+=n; has=true; }
+      if (t!=null) sumNum+=t;
+    }
+    if (!has) return null;
+    return {h, v:sumNoedit, pct: sumNum?sumNoedit/sumNum*100:null};
+  }).filter(o=>o && o.v>0).sort((a,b)=>b.v-a.v).slice(0,top);
+  $('ec-sub').textContent = `ปีงบ ${state.fy} · ${EC_REPORTS.find(x=>x[0]===state.ecView)[1]} · % = สัดส่วนของ error ที่พบทั้งหมดที่ยังไม่แก้ไข`;
+  const ecLink = state.ecView==='all' ? '' : `&r=${state.ecView}&m=NOEDIT`;
+  renderRows($('ec-rows'), ecData, 'ครั้ง', Math.max(...ecData.map(o=>o.v),0), ecLink);
+}
+
+$('sel-fy').addEventListener('change', e=>{ state.fy=+e.target.value; renderAll(); });
+$('sel-top').addEventListener('change', e=>{ state.top=+e.target.value; renderAll(); });
+$('theme-toggle').addEventListener('click', ()=>{
+  const next = document.documentElement.dataset.theme==='dark' ? 'light':'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('mishos-theme', next);
+});
+$('gen-date').textContent = 'อัปเดตข้อมูล ' + AGG.generated;
+renderControls();
+renderAll();
+</script>
+</body>
+</html>
