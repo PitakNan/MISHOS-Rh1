@@ -64,6 +64,12 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
 .tabbtns{display:flex;gap:6px;margin-bottom:10px}
 .empty{padding:24px;text-align:center;color:var(--ink-3);font-size:13px}
 footer{margin-top:20px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.info-ic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  background:var(--ink-3);color:var(--card);font-size:10px;font-weight:700;font-style:normal;cursor:pointer;
+  margin-left:5px;vertical-align:middle;user-select:none;flex-shrink:0}
+.info-ic:hover{background:var(--accent)}
+#info-pop{position:fixed;max-width:320px;background:var(--ink);color:var(--page);font-size:12.5px;line-height:1.55;
+  padding:10px 13px;border-radius:8px;z-index:200;display:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 </style>
 </head>
 <body>
@@ -92,13 +98,13 @@ footer{margin-top:20px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 
   <div class="two-col">
     <div class="card">
-      <h3>1 · AdjRW ส่งข้อมูลผู้ป่วยในเกิน 91 วัน (เสี่ยงไม่ได้รับชดเชย)</h3>
+      <h3>1 · AdjRW ส่งข้อมูลผู้ป่วยในเกิน 91 วัน (เสี่ยงไม่ได้รับชดเชย)<span class="info-ic" data-tip="AdjRW = น้ำหนักสัมพัทธ์ของเคสผู้ป่วยใน (เคสยิ่งซับซ้อนยิ่งค่าสูง) · สปสช. กำหนดให้ส่งข้อมูลเบิกภายใน 91 วันหลังจำหน่ายผู้ป่วย ถ้าส่งช้ากว่านั้นเสี่ยงไม่ได้รับเงินชดเชยเลย · ข้อมูลจากรายงาน ip_ipmonitor มีตั้งแต่ปีงบ 2564 เป็นต้นไป">i</span></h3>
       <p class="csub" id="ip-sub"></p>
       <div class="rows" id="ip-rows"></div>
     </div>
 
     <div class="card">
-      <h3>2 · จำนวนครั้ง Error เคลมที่ยังไม่แก้ไข (NOEDIT) — รวม 4 ประเภทสิทธิ</h3>
+      <h3>2 · จำนวนครั้ง Error เคลมที่ยังไม่แก้ไข (NOEDIT) — รวม 4 ประเภทสิทธิ<span class="info-ic" data-tip="เมื่อ สปสช. ตรวจพบข้อผิดพลาดในการส่งเคลม (เช่น รหัสวินิจฉัยไม่สอดคล้องอายุ, ข้อมูลซ้ำซ้อน) รพ. ต้องแก้ไขและส่งกลับ · NOEDIT = จำนวนครั้งที่ยังไม่ถูกแก้ไข ยิ่งเยอะยิ่งเสี่ยงเสียสิทธิ์เบิกเงินคืน · รวมจากรายงาน eclaimdata ทั้ง 4 สิทธิ (UC/สิทธิอื่น × OP/IP)">i</span></h3>
       <p class="csub" id="ec-sub"></p>
       <div class="tabbtns" id="ec-tabs"></div>
       <div class="rows" id="ec-rows"></div>
@@ -121,6 +127,21 @@ const EC_REPORTS = [
 ];
 let state = { fy: null, top: 15, ecView: 'all' };
 const $ = id => document.getElementById(id);
+// info tooltip — click ⓘ ข้างหัวข้อเพื่อดู/ซ่อนคำอธิบายภาษาคน
+(function(){
+  const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
+  document.addEventListener('click', e=>{
+    const ic = e.target.closest('.info-ic');
+    if (ic){
+      pop.textContent = ic.dataset.tip;
+      pop.style.display = 'block';
+      const r = ic.getBoundingClientRect();
+      pop.style.left = Math.max(8, Math.min(r.left, innerWidth-328))+'px';
+      pop.style.top = (r.bottom+8)+'px';
+      e.stopPropagation();
+    } else if (!e.target.closest('#info-pop')){ pop.style.display = 'none'; }
+  });
+})();
 function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
   const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
   return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }

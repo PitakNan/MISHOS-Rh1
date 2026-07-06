@@ -82,6 +82,12 @@ td .up{color:var(--accent);font-weight:700} td .dn{color:var(--warn);font-weight
 #tooltip{position:fixed;pointer-events:none;background:var(--ink);color:var(--page);font-size:12px;font-family:var(--mono);padding:5px 9px;border-radius:6px;z-index:50;display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
 .hidden, .controls .fld.hidden{display:none}
+.info-ic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  background:var(--ink-3);color:var(--card);font-size:10px;font-weight:700;font-style:normal;cursor:pointer;
+  margin-left:5px;vertical-align:middle;user-select:none;flex-shrink:0}
+.info-ic:hover{background:var(--accent)}
+#info-pop{position:fixed;max-width:320px;background:var(--ink);color:var(--page);font-size:12.5px;line-height:1.55;
+  padding:10px 13px;border-radius:8px;z-index:200;display:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -105,12 +111,12 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <div class="fld"><label>โรงพยาบาล</label><select id="sel-hosp"></select></div>
     <div class="fld"><label>รายงาน</label><select id="sel-report"></select></div>
     <div class="fld"><label>ตัวชี้วัด</label><select id="sel-metric"></select></div>
-    <div class="fld"><label>เส้นอ้างอิงเปรียบเทียบ</label><select id="sel-ref"></select></div>
-    <div class="fld"><label>ค่ากลางกลุ่ม</label><select id="sel-center">
+    <div class="fld"><label>เส้นอ้างอิงเปรียบเทียบ<span class="info-ic" data-tip="กำหนดว่าจะเอา รพ. กลุ่มไหนมาคำนวณ 'ค่ากลางกลุ่ม' เพื่อเทียบกับ รพ. ที่เลือก — เลือกได้ทั้ง GroupName เดียวกัน, ขนาดเดียวกัน (A-F3), จังหวัดเดียวกัน, ทั้งเขต หรือเลือก รพ. เทียบเอง">i</span></label><select id="sel-ref"></select></div>
+    <div class="fld"><label>ค่ากลางกลุ่ม<span class="info-ic" data-tip="มัธยฐาน = ค่ากึ่งกลางของกลุ่ม ทนต่อ รพ. ขนาดสุดโต่งในกลุ่ม (แนะนำ) · ค่าเฉลี่ย = ผลรวมหารจำนวน รพ. อาจถูกดึงสูง/ต่ำผิดปกติได้ง่ายถ้ากลุ่มมี รพ. ขนาดต่างกันมาก">i</span></label><select id="sel-center">
       <option value="median">มัธยฐาน</option>
       <option value="mean">ค่าเฉลี่ย</option>
     </select></div>
-    <div class="fld"><label>ตัวหาร</label><select id="sel-norm">
+    <div class="fld"><label>ตัวหาร<span class="info-ic" data-tip="ค่าดิบ = ตัวเลขจริงไม่ปรับ · ต่อเตียง/ต่อประชากร UC = หารด้วยขนาด รพ. เพื่อเทียบ รพ. ต่างขนาดกันได้เป็นธรรมขึ้น — ถ้า รพ. ไม่มีข้อมูลเตียง/ประชากร (มักเป็นหน่วยนอกสังกัด สธ.) จะถอยไปใช้ค่าดิบทั้งกระดานให้อัตโนมัติ">i</span></label><select id="sel-norm">
       <option value="raw">ค่าดิบ</option>
       <option value="bed">ต่อเตียง</option>
       <option value="pop">ต่อประชากร UC 1,000 คน</option>
@@ -125,20 +131,20 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </div>
 
   <div class="card narr">
-    <h3>📋 บทวิเคราะห์อัตโนมัติ</h3>
+    <h3>📋 บทวิเคราะห์อัตโนมัติ<span class="info-ic" data-tip="สรุปที่คำนวณจากกฎตายตัว (ไม่ใช่ AI เขียนอิสระ): เทรนด์ 5 ปีเทียบค่ากลางกลุ่ม, ระดับปีล่าสุดเทียบกลุ่ม, อันดับในกลุ่ม — เปลี่ยนกลุ่มเปรียบเทียบ/ค่ากลาง/ตัวหารได้จากตัวกรองด้านบน ข้อความจะเปลี่ยนตามทันที">i</span></h3>
     <p class="csub" id="narr-ctx"></p>
     <ul id="narr-list"></ul>
   </div>
 
   <div class="main-grid">
     <div class="card">
-      <h3 id="chart-title"></h3>
+      <h3><span id="chart-title"></span><span class="info-ic" data-tip="เส้นเขียว = โรงพยาบาลที่เลือก, เส้นน้ำเงิน = ค่ากลางของกลุ่มเปรียบเทียบ (เปลี่ยนกลุ่ม/ค่ากลางได้จากตัวกรองด้านบน) · ช่วงเส้นประ+จุดโปร่ง = ปีงบ 2569 ยังไม่เต็มปี">i</span></h3>
       <p class="csub" id="chart-sub"></p>
       <svg id="main-chart" viewBox="0 0 900 240" role="img" aria-label="กราฟเทียบโรงพยาบาลกับเส้นอ้างอิง"></svg>
       <div class="legend" id="chart-legend"></div>
     </div>
     <div class="card">
-      <h3>อันดับในกลุ่มเปรียบเทียบ</h3>
+      <h3>อันดับในกลุ่มเปรียบเทียบ<span class="info-ic" data-tip="ตำแหน่งอันดับของ รพ.นี้เทียบกับสมาชิกกลุ่มเดียวกัน (นับรวมตัวเอง) ปีงบล่าสุดที่มีข้อมูล · จุดกระจายด้านล่าง: จุดฟ้า=สมาชิกกลุ่มแต่ละแห่ง, จุดเขียวเข้ม=รพ.นี้, เส้นประ=ค่ากลางกลุ่ม">i</span></h3>
       <p class="csub" id="rank-sub"></p>
       <div class="rank-big" id="rank-val">–</div>
       <div class="rank-sub" id="rank-note"></div>
@@ -148,13 +154,13 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </div>
 
   <div class="card">
-    <h3>ทุกตัวชี้วัดของรายงานนี้ — ปีงบล่าสุด เทียบกลุ่ม</h3>
+    <h3>ทุกตัวชี้วัดของรายงานนี้ — ปีงบล่าสุด เทียบกลุ่ม<span class="info-ic" data-tip="เทียบทุกตัวชี้วัดในรายงานเดียวกัน (เช่น ทุกกองทุนย่อยของรายงานการเงิน) กับค่ากลางกลุ่มในคราวเดียว แทนที่ต้องสลับตัวชี้วัดทีละตัวด้านบน · ใช้ค่าดิบเสมอ ไม่ผ่านตัวหาร · ถ้ากลุ่มเปรียบเทียบไม่มีสมาชิก คอลัมน์ค่ากลางจะเป็น '–' ทุกแถว">i</span></h3>
     <p class="csub" id="tbl-sub"></p>
     <div style="overflow-x:auto"><table id="metric-table"></table></div>
   </div>
 
   <div class="card hidden" id="code-card">
-    <h3>แยกตามรหัส — ปีงบล่าสุด</h3>
+    <h3>แยกตามรหัส — ปีงบล่าสุด<span class="info-ic" data-tip="แตกยอดรวมของ รพ.+รายงานนี้เป็นรายการย่อยตาม 'รหัส' ที่ สปสช. ใช้ภายใน — ความหมายเปลี่ยนตามรายงาน เช่น รายงานการเงิน=รหัสกองทุนย่อย, คุณภาพเบิก(eclaimdata)=รหัสประเภทข้อผิดพลาด, DMIS=รหัสรายการบริการ · แสดงเฉพาะปีงบล่าสุดที่มีข้อมูลแยกรหัสของ รพ.นี้ (ไม่ใช่ค่าเฉลี่ยกลุ่ม) ไม่ผ่านตัวหาร">i</span></h3>
     <p class="csub" id="code-sub"></p>
     <div style="overflow-x:auto"><table id="code-table"></table></div>
   </div>
@@ -199,6 +205,21 @@ let state = {
   ref: 'group_region', norm: 'raw', peers: [], center: 'median',
 };
 const $ = id => document.getElementById(id);
+// info tooltip — click ⓘ ข้างหัวข้อเพื่อดู/ซ่อนคำอธิบายภาษาคน
+(function(){
+  const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
+  document.addEventListener('click', e=>{
+    const ic = e.target.closest('.info-ic');
+    if (ic){
+      pop.textContent = ic.dataset.tip;
+      pop.style.display = 'block';
+      const r = ic.getBoundingClientRect();
+      pop.style.left = Math.max(8, Math.min(r.left, innerWidth-328))+'px';
+      pop.style.top = (r.bottom+8)+'px';
+      e.stopPropagation();
+    } else if (!e.target.closest('#info-pop')){ pop.style.display = 'none'; }
+  });
+})();
 function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
   const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
   return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }

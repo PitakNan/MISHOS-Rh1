@@ -72,6 +72,12 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
 .sw.mline{width:2px;height:14px;background:var(--warn)}
 footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
 .empty{padding:30px;text-align:center;color:var(--ink-3);font-size:13px}
+.info-ic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  background:var(--ink-3);color:var(--card);font-size:10px;font-weight:700;font-style:normal;cursor:pointer;
+  margin-left:5px;vertical-align:middle;user-select:none;flex-shrink:0}
+.info-ic:hover{background:var(--accent)}
+#info-pop{position:fixed;max-width:320px;background:var(--ink);color:var(--page);font-size:12.5px;line-height:1.55;
+  padding:10px 13px;border-radius:8px;z-index:200;display:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -92,15 +98,15 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </nav>
 
   <div class="controls">
-    <div class="fld"><label>กลุ่มเปรียบเทียบ</label><select id="sel-group"></select></div>
+    <div class="fld"><label>กลุ่มเปรียบเทียบ<span class="info-ic" data-tip="ขอบเขตของ รพ. ที่จะเอามาจัดอันดับด้วยกัน — เลือกได้ทั้งเขต/รายจังหวัด/ตามขนาด A-F3/ตาม GroupName เจาะจง">i</span></label><select id="sel-group"></select></div>
     <div class="fld"><label>รายงาน</label><select id="sel-report"></select></div>
     <div class="fld"><label>ตัวชี้วัด</label><select id="sel-metric"></select></div>
     <div class="fld"><label>ปีงบ</label><select id="sel-fy"></select></div>
-    <div class="fld"><label>ค่ากลางกลุ่ม</label><select id="sel-center">
+    <div class="fld"><label>ค่ากลางกลุ่ม<span class="info-ic" data-tip="มัธยฐาน = ค่ากึ่งกลางของกลุ่ม ทนต่อ รพ. ขนาดสุดโต่งในกลุ่ม (แนะนำ) · ค่าเฉลี่ย = ผลรวมหารจำนวน รพ. อาจถูกดึงสูง/ต่ำผิดปกติได้ง่ายถ้ากลุ่มมี รพ. ขนาดต่างกันมาก">i</span></label><select id="sel-center">
       <option value="median">มัธยฐาน</option>
       <option value="mean">ค่าเฉลี่ย</option>
     </select></div>
-    <div class="fld"><label>ตัวหาร</label><select id="sel-norm">
+    <div class="fld"><label>ตัวหาร<span class="info-ic" data-tip="ค่าดิบ = ตัวเลขจริงไม่ปรับ · ต่อเตียง/ต่อประชากร UC = หารด้วยขนาด รพ. เพื่อเทียบ รพ. ต่างขนาดกันได้เป็นธรรมขึ้น — รพ. ที่ไม่มีข้อมูลเตียง/ประชากรจะถูกตัดออกจากอันดับ (นับแยกในวงเล็บ 'ไม่มีตัวหาร')">i</span></label><select id="sel-norm">
       <option value="raw">ค่าดิบ</option>
       <option value="bed">ต่อเตียง</option>
       <option value="pop">ต่อประชากร UC 1,000 คน</option>
@@ -108,14 +114,14 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </div>
 
   <div class="stat-strip">
-    <div class="card stat"><div class="lbl">สมาชิกกลุ่ม</div><div class="val" id="s-n">–</div></div>
+    <div class="card stat"><div class="lbl">สมาชิกกลุ่ม<span class="info-ic" data-tip="จำนวน รพ. ที่มีข้อมูลของรายงาน/ตัวชี้วัด/ปีงบที่เลือก ในกลุ่มเปรียบเทียบนี้ — ตัวเลขในวงเล็บ (ถ้ามี) คือจำนวน รพ. ที่ถูกตัดออกเพราะไม่มีตัวหาร">i</span></div><div class="val" id="s-n">–</div></div>
     <div class="card stat"><div class="lbl" id="s-med-lbl">มัธยฐานกลุ่ม</div><div class="val" id="s-med">–</div></div>
     <div class="card stat"><div class="lbl">สูงสุด</div><div class="val" id="s-max">–</div></div>
     <div class="card stat"><div class="lbl">ต่ำสุด</div><div class="val" id="s-min">–</div></div>
   </div>
 
   <div class="card">
-    <h3 id="chart-title"></h3>
+    <h3><span id="chart-title"></span><span class="info-ic" data-tip="แถบยาว = ค่าของ รพ. นั้นเทียบกับค่าสูงสุดในกลุ่ม (100%) · เส้นสีส้มแนวตั้ง = ตำแหน่งค่ากลางกลุ่ม (เลือกมัธยฐาน/ค่าเฉลี่ยได้ด้านบน) · % ข้างตัวเลขคือต่างจากค่ากลางเท่าไหร่ · คลิกแถวเพื่อดูรายละเอียด รพ. นั้น">i</span></h3>
     <p class="csub" id="chart-sub"></p>
     <p class="csub" id="fy-warn" style="display:none;color:var(--warn);font-weight:600"></p>
     <div class="legend">
@@ -159,6 +165,21 @@ let state = {
   fy: null, norm: 'raw', center: 'median',
 };
 const $ = id => document.getElementById(id);
+// info tooltip — click ⓘ ข้างหัวข้อเพื่อดู/ซ่อนคำอธิบายภาษาคน
+(function(){
+  const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
+  document.addEventListener('click', e=>{
+    const ic = e.target.closest('.info-ic');
+    if (ic){
+      pop.textContent = ic.dataset.tip;
+      pop.style.display = 'block';
+      const r = ic.getBoundingClientRect();
+      pop.style.left = Math.max(8, Math.min(r.left, innerWidth-328))+'px';
+      pop.style.top = (r.bottom+8)+'px';
+      e.stopPropagation();
+    } else if (!e.target.closest('#info-pop')){ pop.style.display = 'none'; }
+  });
+})();
 function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
   const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
   return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
