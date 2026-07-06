@@ -93,7 +93,7 @@ footer{margin-top:20px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 
   <div class="note-box">
     <span>ℹ️</span>
-    <div><b>หมายเหตุหน่วยวัด:</b> ตัวเลขด้านล่างเป็น <b>AdjRW</b> (น้ำหนักสัมพัทธ์เคส) และ <b>จำนวนครั้ง</b> ไม่ใช่จำนวนเงินบาทโดยตรง — ใช้เป็นตัวชี้ "ปริมาณงานที่เสี่ยง" เพื่อจี้ตามเป็นรายแห่ง ไม่ใช่ยอดเงินที่แม่นยำ (ข้อมูลจาก ip_ipmonitor และ eclaimdata เท่านั้น มีตั้งแต่ปีงบ 2564 เป็นต้นไป)</div>
+    <div><b>หมายเหตุหน่วยวัด:</b> ตัวเลขด้านล่างเป็น <b>AdjRW</b> (น้ำหนักสัมพัทธ์เคส) และ <b>จำนวนครั้ง</b> ไม่ใช่จำนวนเงินบาทโดยตรง — ใช้เป็นตัวชี้ "ปริมาณงานที่เสี่ยง" เพื่อจี้ตามเป็นรายแห่ง ไม่ใช่ยอดเงินที่แม่นยำ (ข้อมูลจาก ip_ipmonitor และ eclaimdata เท่านั้น มีตั้งแต่ปีงบ 2564 เป็นต้นไป) · เลือกปีงบ 2569 (~9 เดือน มีเครื่องหมาย *) ได้ — เป็น % สัดส่วนภายในปีเดียวกัน เช็คสถานะปัจจุบันได้เลยไม่ต้องรอปิดปีงบ</div>
   </div>
 
   <div class="two-col">
@@ -146,26 +146,34 @@ function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(
   const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
   return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
 function val(h, report, metric, fyIdx){ const s=AGG.annual[h]?.[report]?.[metric]; return s?s[fyIdx]:null; }
+function popBracket(info){ // เหมือน hospital.html — "รพช.F3 P<=15,000" → "<=15,000 คน"
+  if (!info.g) return null;
+  const raw = info.g.split(' ').slice(1).join(' ').replace(/(\d+)to(\d+)/,'$1-$2');
+  const m = raw.match(/^([PB])(.+)$/);
+  if (!m) return raw;
+  return m[2] + (m[1]==='P' ? ' คน' : ' เตียง');
+}
 
 function renderControls(){
-  const fullYears = YEARS.filter(y=>y!==PARTIAL && y>=2564); // eclaimdata/ipmonitor เริ่ม 2564
-  if (!state.fy) state.fy = fullYears[fullYears.length-1];
-  $('sel-fy').innerHTML = fullYears.map(y=>`<option value="${y}" ${y===state.fy?'selected':''}>${y}</option>`).join('');
+  const years = YEARS.filter(y=>y>=2564); // eclaimdata/ipmonitor เริ่ม 2564 · รวมปีงบ 2569 (~9 เดือน) ด้วย — % ยังเช็คได้แม้ปีไม่เต็ม
+  if (!state.fy) state.fy = years[years.length-1];
+  $('sel-fy').innerHTML = years.map(y=>`<option value="${y}" ${y===state.fy?'selected':''}>${y}${y===PARTIAL?' (~9 ด.)':''}</option>`).join('');
   $('ec-tabs').innerHTML = EC_REPORTS.map(([k,l])=>
     `<button class="btn ${k===state.ecView?'on':''}" data-k="${k}">${l}</button>`).join('');
   $('ec-tabs').querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ state.ecView=b.dataset.k; renderAll(); }));
 }
 
-function renderRows(el, data, unit, mx, linkQS){
+function renderRows(el, data, unit, mx, linkQS, fyPartial){
   if (!data.length){ el.innerHTML = `<div class="empty">ไม่มีข้อมูลปีงบนี้</div>`; return; }
   el.innerHTML = data.map((o,i)=>{
     const info = H[o.h];
     const pct = mx>0 ? o.v/mx*100 : 0;
+    const br = popBracket(info);
     return `<a class="row" href="hospital.html?h=${o.h}${linkQS||''}">
       <span class="rank-n ${i<3?'crit':''}">${i+1}</span>
-      <span class="hname">${info.n.replace('โรงพยาบาล','รพ.')}<span class="tag">${info.p}${info.s?' · '+info.s:''}</span></span>
+      <span class="hname">${info.n.replace('โรงพยาบาล','รพ.')}<span class="tag">${info.p}${info.s?' · '+info.s:''}${br?' '+br:''}</span></span>
       <span class="barwrap"><span class="barfill" style="width:${pct}%"></span></span>
-      <span class="rowval">${fmt(o.v)} ${unit}${o.pct!=null?`<span class="d">${fmt(o.pct,1)}% ของยอดรวม</span>`:''}</span>
+      <span class="rowval">${fmt(o.v)}${fyPartial?'*':''} ${unit}${o.pct!=null?`<span class="d">${fmt(o.pct,1)}% ของยอดรวม</span>`:''}</span>
     </a>`;
   }).join('');
 }
@@ -173,6 +181,7 @@ function renderRows(el, data, unit, mx, linkQS){
 function renderAll(){
   const fyIdx = YEARS.indexOf(state.fy);
   const top = state.top;
+  const fyPartial = state.fy===PARTIAL;
 
   // ── 1) IP late-submission risk (DAY91_ADJRW as % of ADJRW_SUM) ──
   const ipData = Object.keys(H).map(h=>{
@@ -181,8 +190,8 @@ function renderAll(){
     if (day91==null || !total) return null;
     return {h, v:day91, pct: total?day91/total*100:null};
   }).filter(Boolean).sort((a,b)=>b.v-a.v).slice(0,top);
-  $('ip-sub').textContent = `ปีงบ ${state.fy} · เรียงจาก AdjRW เสี่ยงมากสุด · % = สัดส่วนของ AdjRW ทั้งหมดของ รพ.นั้นที่ส่งเกิน 91 วัน`;
-  renderRows($('ip-rows'), ipData, 'AdjRW', Math.max(...ipData.map(o=>o.v),0), '&r=ip_ipmonitor&m=DAY91_ADJRW');
+  $('ip-sub').textContent = `ปีงบ ${state.fy}${fyPartial?' (~9 เดือน)':''} · เรียงจาก AdjRW เสี่ยงมากสุด · % = สัดส่วนของ AdjRW ทั้งหมดของ รพ.นั้นที่ส่งเกิน 91 วัน`;
+  renderRows($('ip-rows'), ipData, 'AdjRW', Math.max(...ipData.map(o=>o.v),0), '&r=ip_ipmonitor&m=DAY91_ADJRW', fyPartial);
 
   // ── 2) eclaimdata NOEDIT ──
   const reports = state.ecView==='all' ? EC_REPORTS.slice(1).map(x=>x[0]) : [state.ecView];
@@ -196,9 +205,9 @@ function renderAll(){
     if (!has) return null;
     return {h, v:sumNoedit, pct: sumNum?sumNoedit/sumNum*100:null};
   }).filter(o=>o && o.v>0).sort((a,b)=>b.v-a.v).slice(0,top);
-  $('ec-sub').textContent = `ปีงบ ${state.fy} · ${EC_REPORTS.find(x=>x[0]===state.ecView)[1]} · % = สัดส่วนของ error ที่พบทั้งหมดที่ยังไม่แก้ไข`;
+  $('ec-sub').textContent = `ปีงบ ${state.fy}${fyPartial?' (~9 เดือน)':''} · ${EC_REPORTS.find(x=>x[0]===state.ecView)[1]} · % = สัดส่วนของ error ที่พบทั้งหมดที่ยังไม่แก้ไข`;
   const ecLink = state.ecView==='all' ? '' : `&r=${state.ecView}&m=NOEDIT`;
-  renderRows($('ec-rows'), ecData, 'ครั้ง', Math.max(...ecData.map(o=>o.v),0), ecLink);
+  renderRows($('ec-rows'), ecData, 'ครั้ง', Math.max(...ecData.map(o=>o.v),0), ecLink, fyPartial);
 }
 
 $('sel-fy').addEventListener('change', e=>{ state.fy=+e.target.value; renderAll(); });

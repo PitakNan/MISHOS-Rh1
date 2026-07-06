@@ -183,6 +183,13 @@ const $ = id => document.getElementById(id);
 function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
   const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
   return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
+function popBracket(info){ // เหมือน hospital.html — "รพช.F3 P<=15,000" → "<=15,000 คน"
+  if (!info.g) return null;
+  const raw = info.g.split(' ').slice(1).join(' ').replace(/(\d+)to(\d+)/,'$1-$2');
+  const m = raw.match(/^([PB])(.+)$/);
+  if (!m) return raw;
+  return m[2] + (m[1]==='P' ? ' คน' : ' เตียง');
+}
 function metricPref(ms){ const k=Object.keys(ms);
   return k.find(x=>/AMT|BUDGET/.test(x)&&!/RATE/.test(x))||k.find(x=>/NUM|VISIT|DAY_SUM/.test(x))||k[0]; }
 function unitBase(m){ return /AMT|BUDGET/.test(m)?'บาท':/ADJRW/.test(m)?'AdjRW':'ครั้ง'; }
@@ -287,11 +294,12 @@ function renderAll(){
     const medPct = mx>0 && md!=null ? md/mx*100 : null;
     const rankCls = i<3 ? 'top' : i>=data.length-3 ? 'bot' : '';
     const diffFromMed = md ? (o.v-md)/md*100 : null;
+    const br = popBracket(info);
     return `<a class="row" href="hospital.html?h=${o.h}&r=${state.report}&m=${state.metric}">
       <span class="rank-n ${rankCls}">${i+1}</span>
-      <span class="hname">${info.n.replace('โรงพยาบาล','รพ.')}<span class="tag">${info.p}${info.s?' · '+info.s:''}</span></span>
+      <span class="hname">${info.n.replace('โรงพยาบาล','รพ.')}<span class="tag">${info.p}${info.s?' · '+info.s:''}${br?' '+br:''}</span></span>
       <span class="barwrap"><span class="barfill" style="width:${pct}%"></span>${medPct!=null?`<span class="median-mark" style="left:${medPct}%"></span>`:''}</span>
-      <span class="rowval">${fmt(o.v/div)}${diffFromMed!=null?`<span class="d">${diffFromMed>=0?'+':''}${fmt(diffFromMed,0)}% vs กลาง</span>`:''}</span>
+      <span class="rowval">${fmt(o.v/div)}${fyPartial?'*':''}${diffFromMed!=null?`<span class="d">${diffFromMed>=0?'+':''}${fmt(diffFromMed,0)}% vs กลาง</span>`:''}</span>
     </a>`;
   }).join('');
 }

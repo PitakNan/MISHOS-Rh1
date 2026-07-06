@@ -263,17 +263,12 @@ function mean(arr){ const a=arr.filter(v=>v!=null&&isFinite(v));
   if(!a.length) return null; return a.reduce((s,v)=>s+v,0)/a.length; }
 function centerFn(arr){ return state.center==='mean' ? mean(arr) : median(arr); }
 function centerLabel(){ return state.center==='mean' ? 'ค่าเฉลี่ย' : 'มัธยฐาน'; }
-function refSeries(members){
-  const out = Array(NY).fill(null);
-  const perH = members.map(x=>seriesNorm(x)).filter(Boolean);
-  for (let i=0;i<NY;i++) out[i] = median(perH.map(s=>s[i]));
-  return out;
-}
 function lastAvail(vals){ for(let i=NY-1;i>=0;i--) if(vals[i]!=null) return i; return -1; }
 function refName(){ const me=H[state.h];
+  const grpLbl = me.g ? `${me.s} ${popBracket(me)}` : '(ไม่มี GroupName)';
   switch(state.ref){
-    case 'group_region': return `กลุ่ม ${me.g||'(ไม่มี GroupName)'} ทั้งเขต`;
-    case 'group_prov': return `กลุ่ม ${me.g||'(ไม่มี GroupName)'} ใน${me.p}`;
+    case 'group_region': return `กลุ่ม ${grpLbl} ทั้งเขต`;
+    case 'group_prov': return `กลุ่ม ${grpLbl} ใน${me.p}`;
     case 'size_region': return `ขนาด ${me.s||'(ไม่มีขนาด)'} ทั้งเขต`;
     case 'prov': return `จังหวัด${me.p}`;
     case 'region': return 'ทั้งเขต 1';
@@ -293,12 +288,14 @@ function cagr(vals, ipGuard){
 }
 
 // ── controls ──
-function popBracket(info){ // "รพช.F3 P<=15,000" → "<=15,000" (ตัดคำนำหน้าประเภท + ตัวอักษร P/B ออก)
+function popBracket(info){ // "รพช.F3 P<=15,000" → "<=15,000 คน" (P=ประชากร) / "รพศ.A B>700-1000" → ">700-1000 เตียง" (B=เตียง)
   if (!info.g) return null;
-  const parts = info.g.split(' ');
-  return parts.slice(1).join(' ').replace(/^[PB]/,'');
+  const raw = info.g.split(' ').slice(1).join(' ').replace(/(\d+)to(\d+)/,'$1-$2'); // กันเผื่อพิมพ์ตกหล่นแบบ "700to1000" ในข้อมูลต้นทาง
+  const m = raw.match(/^([PB])(.+)$/);
+  if (!m) return raw;
+  return m[2] + (m[1]==='P' ? ' คน' : ' เตียง');
 }
-function hospLabel(h){ // ชื่อ + ประเภท/ขนาด + ช่วงประชากร(หรือเตียง) เช่น "รพ.xxx — F3 <=15,000"
+function hospLabel(h){ // ชื่อ + ประเภท/ขนาด + ช่วงประชากร/เตียง เช่น "รพ.xxx — F3 <=15,000 คน"
   const info = H[h];
   const name = info.n.replace('โรงพยาบาล','รพ.');
   const br = popBracket(info);
@@ -474,8 +471,7 @@ function renderAll(){
   $('h-name').textContent = me.n;
   $('h-chips').innerHTML = [
     `<span class="chip">${me.p}</span>`,
-    me.s?`<span class="chip">ขนาด ${me.s}</span>`:'',
-    me.g?`<span class="chip b">${me.g}</span>`:'',
+    me.s?`<span class="chip">ขนาด ${me.s}${me.g?' · '+popBracket(me):''}</span>`:'',
     me.a==='นอก สธ.'?`<span class="chip w">นอกสังกัด สธ.</span>`:'',
     me.b?`<span class="chip b">${me.b} เตียง</span>`:'',
     me.pop?`<span class="chip b">ปชก.UC ${fmt(me.pop,0)}</span>`:'',

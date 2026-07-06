@@ -221,6 +221,13 @@ const $ = id => document.getElementById(id);
   });
 })();
 function ii(tip){ return `<span class="info-ic" data-tip="${tip.replace(/"/g,'&quot;')}">i</span>`; }
+function popBracket(info){ // เหมือน hospital.html — "รพช.F3 P<=15,000" → "<=15,000 คน"
+  if (!info.g) return null;
+  const raw = info.g.split(' ').slice(1).join(' ').replace(/(\d+)to(\d+)/,'$1-$2');
+  const m = raw.match(/^([PB])(.+)$/);
+  if (!m) return raw;
+  return m[2] + (m[1]==='P' ? ' คน' : ' เตียง');
+}
 function metricPref(ms){ // เลือก metric ตั้งต้น: เงิน > ครั้ง > ตัวแรก
   const keys = Object.keys(ms);
   return keys.find(k=>/AMT|BUDGET/.test(k) && !/RATE/.test(k)) || keys.find(k=>/NUM|VISIT|DAY_SUM/.test(k)) || keys[0];
@@ -427,7 +434,7 @@ function renderHosp(udiv, ulab, pi){
     const card = document.createElement('div');
     card.className='card mini';
     card.innerHTML = `<h4>${info.n.replace('โรงพยาบาล','รพ.')} <span class="v">${last!=null?fmt(last/udiv)+(partial?'*':''):'–'}</span></h4>
-      <p class="csub">${info.s?info.s+' · ':''}${info.a==='นอก สธ.'?'นอก สธ.':(info.g||'')}</p><svg viewBox="0 0 300 100"></svg>`;
+      <p class="csub">${info.s?info.s+(popBracket(info)?' '+popBracket(info):''):(info.a==='นอก สธ.'?'นอก สธ.':'')}</p><svg viewBox="0 0 300 100"></svg>`;
     g.appendChild(card);
     lineChart(card.querySelector('svg'), v, {w:300,h:100,padT:10,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
     card.addEventListener('click', ()=> openHosp(h));
@@ -464,7 +471,7 @@ async function openHosp(h){
   const info = H[h];
   const root = $('modal-root');
   root.innerHTML = `<div class="modal-bg"><div class="modal"><div class="mh">
-    <div><h3>${info.n}</h3><p class="csub">${info.p} · ${info.s||''} ${info.g||info.a} ${info.b?'· '+info.b+' เตียง':''} ${info.pop?'· ปชก.UC '+fmt(info.pop,0):''}</p></div>
+    <div><h3>${info.n}</h3><p class="csub">${info.p} · ${info.s||''} ${info.a==='นอก สธ.'?'นอก สธ.':''} ${info.b?'· '+info.b+' เตียง':''} ${info.pop?'· ปชก.UC '+fmt(info.pop,0):''}</p></div>
     <span style="display:flex;gap:6px"><a class="btn" style="text-decoration:none" href="hospital.html?h=${h}&r=${state.report}&m=${state.metric}">🔍 วิเคราะห์เชิงลึก</a><button class="btn" id="m-close">✕ ปิด</button></span></div>
     <p class="csub" style="margin-top:8px">กำลังโหลดข้อมูลรายเดือน…</p></div></div>`;
   root.querySelector('.modal-bg').addEventListener('click', e=>{ if(e.target===e.currentTarget) root.innerHTML=''; });
