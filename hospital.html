@@ -4,7 +4,7 @@
 <script src="theme.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MISHOS — วิเคราะห์รายโรงพยาบาล เทียบเชิงบริบท</title>
+<title>MISHOS — วิเคราะห์ราย รพ. เทียบเชิงบริบท</title>
 <style>
 :root{
   --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
@@ -39,7 +39,9 @@ header .sub{font-size:12px;color:var(--ink-2);font-family:var(--mono)}
 .btn:hover{border-color:var(--accent)}
 .btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
 .btn:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px;
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+:root[data-theme="dark"] .controls{box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .controls .fld{display:flex;flex-direction:column;gap:3px}
 .controls label{font-size:11.5px;color:var(--ink-2)}
 select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--ink);font-family:var(--sans);max-width:340px}
@@ -87,14 +89,14 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 <div class="wrap">
   <header>
     <div>
-      <h1>🏥 วิเคราะห์รายโรงพยาบาล — เทียบเชิงบริบท</h1>
+      <h1>🏥 วิเคราะห์ราย รพ. — เทียบเชิงบริบท</h1>
       <div class="sub">MISHOS (สปสช.) · ปีงบ 2560–2569 · <span id="gen-date"></span></div>
     </div>
     <button class="btn" id="theme-toggle">◐ โหมดสี</button>
   </header>
   <nav class="nav">
     <a href="index.html">📈 เทรนด์ภาพรวม</a>
-    <a class="on" href="hospital.html" aria-current="page">🏥 วิเคราะห์รายโรง</a>
+    <a class="on" href="hospital.html" aria-current="page">🏥 วิเคราะห์ราย รพ.</a>
     <a href="rank.html">🏆 จัดอันดับ</a>
     <a href="risk.html">⚠️ เงินเสี่ยง</a>
   </nav>
@@ -137,25 +139,26 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
       <div class="rank-big" id="rank-val">–</div>
       <div class="rank-sub" id="rank-note"></div>
       <div class="dotplot"><svg id="dot-chart" viewBox="0 0 300 90"></svg></div>
-      <p class="csub" style="margin-top:6px">ตำแหน่ง รพ. (จุดเข้ม) เทียบสมาชิกกลุ่ม · ปีงบเต็มล่าสุด</p>
+      <p class="csub" style="margin-top:6px">ตำแหน่ง รพ. (จุดเข้ม) เทียบสมาชิกกลุ่ม · ปีงบล่าสุด (* = 2569 ~9 เดือน)</p>
     </div>
   </div>
 
   <div class="card">
-    <h3>ทุกตัวชี้วัดของรายงานนี้ — ปีงบเต็มล่าสุด เทียบกลุ่ม</h3>
+    <h3>ทุกตัวชี้วัดของรายงานนี้ — ปีงบล่าสุด เทียบกลุ่ม</h3>
     <p class="csub" id="tbl-sub"></p>
     <div style="overflow-x:auto"><table id="metric-table"></table></div>
   </div>
 
   <div class="card hidden" id="code-card">
-    <h3>แยกตามรหัส — ปีงบเต็มล่าสุด</h3>
+    <h3>แยกตามรหัส — ปีงบล่าสุด</h3>
     <p class="csub" id="code-sub"></p>
     <div style="overflow-x:auto"><table id="code-table"></table></div>
   </div>
 
   <footer>
     กติกา: มัธยฐานกลุ่มไม่รวม รพ. ที่เลือก (C-2) · กลุ่ม n=1 แสดงค่าตามจริง (C-3) ·
-    รายงาน IP ปี 2560–2562 เป็นช่วงเริ่มระบบ ไม่ใช้คำนวณอัตราโต (R-2) · ปีงบ 2569 ไม่เต็มปี ไม่ใช้เทียบ (R-3)
+    รายงาน IP ปี 2560–2562 เป็นช่วงเริ่มระบบ ไม่ใช้คำนวณอัตราโต (R-2) ·
+    ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — รวมแสดง/จัดอันดับแล้ว (เครื่องหมาย * กำกับ) แต่ยังไม่รวมคำนวณอัตราโต/CAGR (R-3)
   </footer>
 </div>
 <div id="tooltip"></div>
@@ -237,7 +240,7 @@ function refSeries(members){
   for (let i=0;i<NY;i++) out[i] = median(perH.map(s=>s[i]));
   return out;
 }
-function lastFull(vals){ for(let i=NY-1;i>=0;i--) if(YEARS[i]!==PARTIAL && vals[i]!=null) return i; return -1; }
+function lastAvail(vals){ for(let i=NY-1;i>=0;i--) if(vals[i]!=null) return i; return -1; }
 function refName(){ const me=H[state.h];
   switch(state.ref){
     case 'group_region': return `กลุ่ม ${me.g||'(ไม่มี GroupName)'} ทั้งเขต`;
@@ -365,10 +368,12 @@ function buildNarrative(hospN, refN, members, div, ulab){
   const items=[];
   const me=H[state.h];
   const ip = IP_REPORTS.includes(state.report);
-  const li = lastFull(hospN);
+  const li = lastAvail(hospN);
+  const liPartial = li>=0 && YEARS[li]===PARTIAL;
+  const yearLbl = i => YEARS[i]===PARTIAL ? `${YEARS[i]} (~9 เดือน)` : YEARS[i];
   const mlabel = AGG.reports[state.report].metrics[state.metric];
   const nLbl = state.ref==='custom' ? `เทียบ รพ.ที่เลือก ${members.length} แห่ง` : `${refName()} (n=${members.length} ไม่รวม รพ.นี้)`;
-  if (li<0){ items.push(['ℹ️','ไม่มีข้อมูลปีเต็มของตัวชี้วัดนี้ — อาจเป็นโครงการที่เพิ่งเริ่ม หรือ รพ. ไม่มีบริการนี้']); return items; }
+  if (li<0){ items.push(['ℹ️','ไม่มีข้อมูลของตัวชี้วัดนี้ — อาจเป็นโครงการที่เพิ่งเริ่ม หรือ รพ. ไม่มีบริการนี้']); return items; }
   // 1) เทรนด์ตัวเอง
   const g = cagr(hospN, ip);
   if (g){
@@ -382,10 +387,10 @@ function buildNarrative(hospN, refN, members, div, ulab){
   if (refN[li]!=null && refN[li]>0){
     const diff=(hospN[li]-refN[li])/refN[li]*100;
     items.push([Math.abs(diff)<5?'⚖️':diff>0?'🟢':'🟠',
-      `ปีงบ ${YEARS[li]}: <b>${fmt(hospN[li]/div)} ${ulab}</b> ${diff>=0?'สูงกว่า':'ต่ำกว่า'}มัธยฐานกลุ่ม <b>${fmt(Math.abs(diff),1)}%</b> (กลุ่ม ${fmt(refN[li]/div)})`]);
+      `ปีงบ ${yearLbl(li)}: <b>${fmt(hospN[li]/div)} ${ulab}</b> ${diff>=0?'สูงกว่า':'ต่ำกว่า'}มัธยฐานกลุ่ม <b>${fmt(Math.abs(diff),1)}%</b> (กลุ่ม ${fmt(refN[li]/div)})`]);
   } else if (members.length===1){
     const pv = serAct(members[0]);
-    if (pv && pv[li]!=null) items.push(['👥',`กลุ่มเทียบมีสมาชิกเดียว (${H[members[0]].n.replace('โรงพยาบาล','รพ.')}) — ปีงบ ${YEARS[li]}: รพ.นี้ ${fmt(hospN[li]/div)} vs ${fmt(pv[li]/div)} ${ulab}`]);
+    if (pv && pv[li]!=null) items.push(['👥',`กลุ่มเทียบมีสมาชิกเดียว (${H[members[0]].n.replace('โรงพยาบาล','รพ.')}) — ปีงบ ${yearLbl(li)}: รพ.นี้ ${fmt(hospN[li]/div)} vs ${fmt(pv[li]/div)} ${ulab}`]);
   } else if (!members.length){
     items.push(['👥','กลุ่มเปรียบเทียบนี้ไม่มีสมาชิกอื่นนอกจาก รพ. นี้เอง — ลองเปลี่ยนเส้นอ้างอิงหรือเลือก รพ. เทียบเอง']);
   }
@@ -395,12 +400,11 @@ function buildNarrative(hospN, refN, members, div, ulab){
   const pos = ranked.findIndex(o=>o.x===state.h)+1;
   if (pos>0 && ranked.length>1){
     const pct = pos<=Math.ceil(ranked.length*0.25)?'อยู่ในกลุ่มบนสุด (Top 25%)':pos>ranked.length*0.75?'อยู่ในกลุ่มล่าง':'อยู่กลางกลุ่ม';
-    items.push(['🏁',`อันดับ <b>${pos} จาก ${ranked.length}</b> (รวม รพ.นี้) — ${pct}${USE_NORM?' เมื่อคิด'+($('sel-norm').selectedOptions[0].text):''}`]);
+    items.push(['🏁',`อันดับ <b>${pos} จาก ${ranked.length}</b> (รวม รพ.นี้) — ${pct}${USE_NORM?' เมื่อคิด'+($('sel-norm').selectedOptions[0].text):''}${liPartial?' (ปีงบ 2569 ~9 เดือน)':''}`]);
   }
   // 4) ธงข้อมูล
   if (ip) items.push(['⚠️','รายงาน IP: ปี 2560–2562 เป็นช่วงเริ่มระบบ ไม่ถูกนำมาคิดอัตราโต (กติกา R-2)']);
-  const pi=YEARS.indexOf(PARTIAL);
-  if (hospN[pi]!=null) items.push(['🕗',`ปีงบ ${PARTIAL} (~9 เดือน): ${fmt(hospN[pi]/div)} ${ulab} — ยังไม่นำมาเทียบ/จัดอันดับ`]);
+  if (liPartial) items.push(['🕗',`ปีงบ ${PARTIAL} มีข้อมูลเพียง ~9 เดือน — ตัวเลข "ปีล่าสุด" ด้านบนใช้ปีนี้แล้ว แต่เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้ (อัตราโตด้านบนยังคำนวณถึงปีเต็มล่าสุดเท่านั้น)`]);
   if (state.norm!=='raw' && !divisor(state.h)) items.push(['ℹ️','รพ. นี้ไม่มีตัวหาร (เตียง/ประชากร) — แสดงค่าดิบแทน']);
   return items;
 }
@@ -442,7 +446,7 @@ function renderAll(){
     .map(([ic,t])=>`<li><span class="ic">${ic}</span><span>${t}</span></li>`).join('');
 
   $('chart-title').textContent = `${mlabel} — ${me.n.replace('โรงพยาบาล','รพ.')} เทียบมัธยฐานกลุ่ม`;
-  $('chart-sub').textContent = `หน่วย: ${ulab} · เส้นเขียว = รพ.นี้ · เส้นน้ำเงิน = มัธยฐาน${refName()} · ช่วงประ+จุดโปร่ง = ปีงบ ${PARTIAL} ไม่เต็มปี`;
+  $('chart-sub').textContent = `หน่วย: ${ulab} · เส้นเขียว = รพ.นี้ · เส้นน้ำเงิน = มัธยฐาน${refName()} · ช่วงประ+จุดโปร่ง = ปีงบ ${PARTIAL} (~9 เดือน ไม่เต็มปี — รวมใช้เทียบแล้ว)`;
   const refNote = refN.every(v=>v==null)
     ? (state.ref==='custom'
         ? (state.peers.length ? 'รพ.ที่เลือกเทียบไม่มีข้อมูลตัวชี้วัดนี้' : '⚠ ยังไม่ได้เลือก รพ. เทียบ — เลือกในช่องด้านบน')
@@ -454,12 +458,13 @@ function renderAll(){
     <span><span class="sw line" style="background:var(--blue)"></span>มัธยฐาน ${refName()} (n=${members.length})</span>`;
 
   // rank card
-  const li = lastFull(hospN);
+  const li = lastAvail(hospN);
+  const liPartial = li>=0 && YEARS[li]===PARTIAL;
   const vals = members.map(x=>serAct(x)).filter(Boolean).map(s=>li>=0?s[li]:null);
   const ranked=[hospN[li], ...vals].filter(v=>v!=null).sort((a,b)=>b-a);
   const pos = li>=0&&hospN[li]!=null ? ranked.indexOf(hospN[li])+1 : 0;
-  $('rank-sub').textContent = li>=0?`ปีงบ ${YEARS[li]} · ${refName()}`:'';
-  $('rank-val').textContent = pos>0?`${pos} / ${ranked.length}`:'–';
+  $('rank-sub').textContent = li>=0?`ปีงบ ${YEARS[li]}${liPartial?' (~9 เดือน)':''} · ${refName()}`:'';
+  $('rank-val').textContent = pos>0?`${pos} / ${ranked.length}${liPartial?'*':''}`:'–';
   $('rank-note').textContent = pos>0?(ranked.length===1?'กลุ่มนี้มีเฉพาะ รพ.นี้ (n=1 ตามจริง)':''):'ไม่มีข้อมูลจัดอันดับ';
   dotPlot($('dot-chart'), vals, li>=0?hospN[li]:null, div);
 
@@ -493,13 +498,14 @@ async function renderCodeTable(){
   try { d = await loadShard(state.h); } catch(e){ $('code-sub').textContent = 'โหลดข้อมูลไม่สำเร็จ'; return; }
   if (reqId !== codeReqId) return; // ผู้ใช้เปลี่ยน รพ./รายงานระหว่างโหลด — ทิ้งผลเก่า
   const byFy = d.breakdown[state.report] || {};
-  const fys = Object.keys(byFy).map(Number).filter(fy=>fy!==PARTIAL).sort((a,b)=>b-a);
+  const fys = Object.keys(byFy).map(Number).sort((a,b)=>b-a);
   const fy = fys[0];
-  if (!fy){ $('code-sub').textContent = 'ไม่มีข้อมูลแยกรหัสของปีงบเต็มสำหรับ รพ.นี้'; return; }
+  if (!fy){ $('code-sub').textContent = 'ไม่มีข้อมูลแยกรหัสสำหรับ รพ.นี้'; return; }
+  const fyPartial = fy===PARTIAL;
   const rows = Object.entries(byFy[fy]).map(([code,row])=>({code, ...row}))
     .filter(r=>r.v[state.metric]!=null).sort((a,b)=>b.v[state.metric]-a.v[state.metric]);
   const mlabel = AGG.reports[state.report].metrics[state.metric];
-  $('code-sub').textContent = `ปีงบ ${fy} · ${mlabel} · เรียงมาก→น้อย · ${rows.length} รหัส`;
+  $('code-sub').textContent = `ปีงบ ${fy}${fyPartial?' (~9 เดือน ไม่เต็มปี)':''} · ${mlabel} · เรียงมาก→น้อย · ${rows.length} รหัส`;
   if (!rows.length){ $('code-table').innerHTML = ''; $('code-sub').textContent += ' (ไม่มีค่าของตัวชี้วัดนี้)'; return; }
   const hasParent = rows.some(r=>r.pd);
   const descTd = t => `<td style="text-align:left;font-family:var(--sans);font-size:12.5px;white-space:normal;max-width:360px">${t||''}</td>`;
@@ -513,21 +519,23 @@ function renderMetricTable(members){
   const raw = seriesRaw(state.h);
   let html = '<thead><tr><th>ตัวชี้วัด</th><th>รพ.นี้</th><th>มัธยฐานกลุ่ม</th><th>ต่าง %</th><th>อันดับ</th></tr></thead><tbody>';
   const saveM = state.metric;
+  let anyPartial = false;
   for (const m of Object.keys(ms)){
     state.metric = m;
-    const hv = seriesRaw(state.h), li = lastFull(hv);
+    const hv = seriesRaw(state.h), li = lastAvail(hv);
     if (li<0){ html+=`<tr><td>${ms[m]}</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>`; continue; }
+    const liPartial = YEARS[li]===PARTIAL; if (liPartial) anyPartial = true;
     const mem = members.map(x=>seriesRaw(x)[li]).filter(v=>v!=null);
     const md = median(mem);
     const diff = md ? (hv[li]-md)/md*100 : null;
     const ranked=[hv[li],...mem].filter(v=>v!=null).sort((a,b)=>b-a);
     const pos = ranked.indexOf(hv[li])+1;
-    html += `<tr><td>${ms[m]}</td><td>${fmt(hv[li])}</td><td>${fmt(md)}</td>
+    html += `<tr><td>${ms[m]}</td><td>${fmt(hv[li])}${liPartial?'*':''}</td><td>${fmt(md)}</td>
       <td>${diff==null?'–':`<span class="${diff>=0?'up':'dn'}">${diff>=0?'+':''}${fmt(diff,1)}%</span>`}</td>
       <td>${pos>0?pos+'/'+ranked.length:'–'}</td></tr>`;
   }
   state.metric = saveM;
-  $('tbl-sub').textContent = `ค่าดิบ ปีงบเต็มล่าสุดของแต่ละตัวชี้วัด · กลุ่ม: ${refName()}`;
+  $('tbl-sub').textContent = `ค่าดิบ ปีงบล่าสุดที่มีข้อมูลของแต่ละตัวชี้วัด · กลุ่ม: ${refName()}${anyPartial?' · * = ปีงบ 2569 (~9 เดือน)':''}`;
   $('metric-table').innerHTML = html + '</tbody>';
 }
 

@@ -86,7 +86,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </header>
   <nav class="nav">
     <a href="index.html">📈 เทรนด์ภาพรวม</a>
-    <a href="hospital.html">🏥 วิเคราะห์รายโรง</a>
+    <a href="hospital.html">🏥 วิเคราะห์ราย รพ.</a>
     <a class="on" href="rank.html" aria-current="page">🏆 จัดอันดับ</a>
     <a href="risk.html">⚠️ เงินเสี่ยง</a>
   </nav>
@@ -113,6 +113,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   <div class="card">
     <h3 id="chart-title"></h3>
     <p class="csub" id="chart-sub"></p>
+    <p class="csub" id="fy-warn" style="display:none;color:var(--warn);font-weight:600"></p>
     <div class="legend">
       <span><span class="sw" style="background:var(--accent)"></span>ค่ารายโรง</span>
       <span><span class="sw mline"></span>เส้นมัธยฐานกลุ่ม</span>
@@ -121,8 +122,9 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </div>
 
   <footer>
-    คลิกแถวเพื่อดูวิเคราะห์เชิงลึกของโรงพยาบาลนั้น (หน้า "วิเคราะห์รายโรง") ·
-    ปีงบ 2569 ไม่เต็มปีจึงไม่รวมในตัวเลือกจัดอันดับ · รายงานผู้ป่วยใน (IP) ปีงบ 2560-2562 เป็นช่วงเริ่มระบบ ไม่น่าเชื่อถือ จึงไม่รวมในตัวเลือกปีงบ ·
+    คลิกแถวเพื่อดูวิเคราะห์เชิงลึกของโรงพยาบาลนั้น (หน้า "วิเคราะห์ราย รพ.") ·
+    ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — เลือกดูได้แต่เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้ (จัดอันดับภายในปีเดียวกันยังเทียบกันได้ปกติ) ·
+    รายงานผู้ป่วยใน (IP) ปีงบ 2560-2562 เป็นช่วงเริ่มระบบ ไม่น่าเชื่อถือ จึงไม่รวมในตัวเลือกปีงบ ·
     หน่วยนอกสังกัด สป.สธ. ไม่มีขนาด/GroupName จึงไม่ปรากฏในกลุ่มขนาด/GroupName
   </footer>
 </div>
@@ -209,9 +211,9 @@ function renderControls(){
 }
 function renderFySel(){
   const ipGuard = IP_REPORTS.includes(state.report);
-  const fullYears = YEARS.filter(y=>y!==PARTIAL && (!ipGuard || y>=2563));
-  if (!state.fy || !fullYears.includes(state.fy)) state.fy = fullYears[fullYears.length-1];
-  $('sel-fy').innerHTML = fullYears.map(y=>`<option value="${y}" ${y===state.fy?'selected':''}>${y}</option>`).join('');
+  const years = YEARS.filter(y=>!ipGuard || y>=2563); // รวมปีงบ 2569 (~9 เดือน) ด้วย
+  if (!state.fy || !years.includes(state.fy)) state.fy = years[years.length-1];
+  $('sel-fy').innerHTML = years.map(y=>`<option value="${y}" ${y===state.fy?'selected':''}>${y}${y===PARTIAL?' (~9 ด.)':''}</option>`).join('');
 }
 function renderMetricSel(){
   const ms = AGG.reports[state.report].metrics;
@@ -232,13 +234,16 @@ function renderAll(){
   const div = unitOf(vals), ulab = unitLbl(div, state.metric);
   const mlabel = AGG.reports[state.report].metrics[state.metric];
 
+  const fyPartial = state.fy===PARTIAL;
   $('s-n').textContent = data.length + (skippedForNorm?` (+${skippedForNorm} ไม่มีตัวหาร)`:'');
-  $('s-med').textContent = md!=null ? fmt(md/div)+' '+ulab : '–';
-  $('s-max').textContent = vals.length ? fmt(mx/div)+' '+ulab : '–';
-  $('s-min').textContent = vals.length ? fmt(mn/div)+' '+ulab : '–';
+  $('s-med').textContent = md!=null ? fmt(md/div)+(fyPartial?'*':'')+' '+ulab : '–';
+  $('s-max').textContent = vals.length ? fmt(mx/div)+(fyPartial?'*':'')+' '+ulab : '–';
+  $('s-min').textContent = vals.length ? fmt(mn/div)+(fyPartial?'*':'')+' '+ulab : '–';
 
   $('chart-title').textContent = `${mlabel} — ${groupLabel()}`;
-  $('chart-sub').textContent = `ปีงบ ${state.fy} · หน่วย: ${ulab}${state.norm!=='raw'?' · '+$('sel-norm').selectedOptions[0].text:''} · เรียงจากมากไปน้อย`;
+  $('chart-sub').textContent = `ปีงบ ${state.fy}${fyPartial?'*':''} · หน่วย: ${ulab}${state.norm!=='raw'?' · '+$('sel-norm').selectedOptions[0].text:''} · เรียงจากมากไปน้อย`;
+  $('fy-warn').style.display = fyPartial ? '' : 'none';
+  $('fy-warn').textContent = fyPartial ? '* ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — จัดอันดับภายในปีนี้เทียบกันเองได้ปกติ แต่เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้' : '';
 
   const rows = $('rows');
   if (!data.length){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของรายงาน/ปีงบนี้ในกลุ่มที่เลือก</div>`; return; }

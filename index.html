@@ -117,7 +117,7 @@ footer{margin-top:34px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 
   <nav class="pagenav" style="display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--line)">
     <a href="index.html" aria-current="page" class="on">📈 เทรนด์ภาพรวม</a>
-    <a href="hospital.html">🏥 วิเคราะห์รายโรง</a>
+    <a href="hospital.html">🏥 วิเคราะห์ราย รพ.</a>
     <a href="rank.html">🏆 จัดอันดับ</a>
     <a href="risk.html">⚠️ เงินเสี่ยง</a>
   </nav>
@@ -128,7 +128,7 @@ footer{margin-top:34px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <label>ตัวชี้วัด <select id="sel-metric"></select></label>
     <button class="btn" id="aff-toggle" aria-pressed="false" title="ตัดหน่วยนอกสังกัด สป.สธ. (28 แห่ง) ออกจากยอดรวม">เฉพาะ สธ. 103 แห่ง</button>
     <span class="spacer"></span>
-    <span class="chip">⚠ ปีงบ 2569 มีข้อมูล ~9 เดือน — แท่งโปร่ง+เส้นประ</span>
+    <span class="chip">⚠ ปีงบ 2569 มีข้อมูล ~9 เดือน — รวมแสดง/จัดอันดับแล้ว มีเครื่องหมาย * กำกับ</span>
   </div>
 
   <div class="hero">
@@ -154,7 +154,7 @@ footer{margin-top:34px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <div id="hosp-section" class="hidden">
       <div class="section-h">
         <h2 id="hosp-title"></h2>
-        <span class="note">เรียงตามยอดปีเต็มล่าสุด · คลิก รพ. เพื่อดูรายเดือน</span>
+        <span class="note">เรียงตามยอดปีล่าสุด (* = ปีงบ 2569 ~9 เดือน) · คลิก รพ. เพื่อดูรายเดือน</span>
         <span class="spacer"></span>
         <button class="btn" id="hosp-more">แสดงทั้งหมด</button>
       </div>
@@ -168,8 +168,9 @@ footer{margin-top:34px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </div>
 
   <footer>
-    แหล่งข้อมูล: mishos.nhso.go.th (ดึง 4–5 ก.ค. 2569) · ยอดปีคือผลรวม 12 เดือนปีงบประมาณ ·
-    เดือน ก.ย. ของทุกปีรวมยอดเคลมส่งช้า (ดูรายเดือนโปรดระวัง) · RATE/อัตราต่อครั้ง คำนวณจาก เงิน÷ครั้ง ไม่เก็บตรง
+    แหล่งข้อมูล: mishos.nhso.go.th (ดึง 4–5 ก.ค. 2569) · ยอดปีคือผลรวม 12 เดือนปีงบประมาณ (ยกเว้นปีที่มี * ) ·
+    เดือน ก.ย. ของทุกปีรวมยอดเคลมส่งช้า (ดูรายเดือนโปรดระวัง) · RATE/อัตราต่อครั้ง คำนวณจาก เงิน÷ครั้ง ไม่เก็บตรง ·
+    * = ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้
   </footer>
 </div>
 <div id="tooltip"></div>
@@ -231,10 +232,11 @@ function seriesSum(hcodes){
 function seriesHosp(h){
   return (AGG.annual[h]?.[state.report]?.[state.metric]) || Array(NY).fill(null);
 }
-function lastFull(vals){ // index ปีเต็มล่าสุดที่มีข้อมูล
-  for (let i=NY-1;i>=0;i--) if (YEARS[i]!==PARTIAL && vals[i]!=null) return i;
+function lastAvail(vals){ // index ปีล่าสุดที่มีข้อมูล (รวมปีงบ 2569 ไม่เต็มปีด้วย)
+  for (let i=NY-1;i>=0;i--) if (vals[i]!=null) return i;
   return -1;
 }
+const partialMark = i => YEARS[i]===PARTIAL ? '*' : '';
 
 // ── chart renderer: line + crosshair (trend-first — see dataviz interaction guidance) ──
 const tip = $('tooltip');
@@ -341,10 +343,11 @@ function renderAll(){
   const [_, div] = [null, ...unitOf(region)].slice(0,2).length ? unitOf(region).slice(0,2) : ['',1];
   const u = unitOf(region), udiv = u[1], ulab = unitLabel(udiv);
   // hero stat
-  const li = lastFull(region);
+  const li = lastAvail(region);
+  const liPartial = li>=0 && YEARS[li]===PARTIAL;
   const mlabel = AGG.reports[state.report].metrics[state.metric];
-  $('stat-lbl').textContent = `${mlabel} รวมทั้งเขต · ปีงบ ${li>=0?YEARS[li]:'–'} (ปีเต็มล่าสุด)`;
-  $('stat-val').textContent = li>=0 ? fmt(region[li]/udiv) : '–';
+  $('stat-lbl').textContent = `${mlabel} รวมทั้งเขต · ปีงบ ${li>=0?YEARS[li]:'–'}${liPartial?' (~9 เดือน ไม่เต็มปี)':li>=0?' (ปีล่าสุด)':''}`;
+  $('stat-val').textContent = li>=0 ? fmt(region[li]/udiv)+partialMark(li) : '–';
   $('stat-unit').textContent = ulab;
   let deltaTxt = '';
   const ipGuard = IP_REPORTS.includes(state.report);
@@ -355,14 +358,14 @@ function renderAll(){
     } else {
       const yoy = (region[li]-region[li-1])/region[li-1]*100;
       deltaTxt = `${yoy>=0?'▲':'▼'} ${Math.abs(yoy).toFixed(1)}% จากปีงบ ${YEARS[li-1]}`;
+      if (liPartial) deltaTxt += ' ⚠ เทียบ ~9 เดือน กับปีก่อนเต็มปี ไม่ใช่ YoY ที่แท้จริง';
       $('stat-delta').style.color = yoy>=0 ? 'var(--accent)' : 'var(--warn)';
     }
   }
   $('stat-delta').textContent = deltaTxt;
   const pi = YEARS.indexOf(PARTIAL);
-  $('stat-ytd').innerHTML = region[pi]!=null
-    ? `ปีงบ ${PARTIAL} (~9 เดือน): <b>${fmt(region[pi]/udiv)}</b> ${ulab}`
-    : `ปีงบ ${PARTIAL}: ยังไม่มีข้อมูล`;
+  $('stat-ytd').classList.toggle('hidden', region[pi]!=null);
+  $('stat-ytd').innerHTML = region[pi]!=null ? '' : `ปีงบ ${PARTIAL}: ยังไม่มีข้อมูล`;
   // region chart
   $('region-sub').textContent = `${mlabel} · หน่วย: ${ulab||'ตามจริง'} · ${hs.length} หน่วยบริการ`;
   lineChart($('region-chart'), region, {w:960,h:200,padT:24,direct:true,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
@@ -371,10 +374,10 @@ function renderAll(){
   for (const p of PROVS){
     const phs = hs.filter(h=>H[h].p===p);
     const vals = seriesSum(phs);
-    const l = lastFull(vals);
+    const l = lastAvail(vals);
     const card = document.createElement('div');
     card.className = 'card mini' + (state.prov===p?' sel':'');
-    card.innerHTML = `<h4>${p} <span class="v">${l>=0?fmt(vals[l]/udiv):'–'} ${ulab}</span></h4>
+    card.innerHTML = `<h4>${p} <span class="v">${l>=0?fmt(vals[l]/udiv)+partialMark(l):'–'} ${ulab}</span></h4>
       <p class="csub">${phs.length} หน่วย</p><svg viewBox="0 0 300 110"></svg>`;
     pg.appendChild(card);
     lineChart(card.querySelector('svg'), vals, {w:300,h:110,padT:12,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
@@ -390,18 +393,18 @@ function renderHosp(udiv, ulab, pi){
   sec.classList.remove('hidden');
   const ipGuard = IP_REPORTS.includes(state.report);
   const hs = hospSet().filter(h=>H[h].p===state.prov);
-  const ranked = hs.map(h=>{ const v=seriesHosp(h); const l=lastFull(v); return {h, v, last:l>=0?v[l]:null}; })
+  const ranked = hs.map(h=>{ const v=seriesHosp(h); const l=lastAvail(v); return {h, v, last:l>=0?v[l]:null, partial:l>=0&&YEARS[l]===PARTIAL}; })
     .sort((a,b)=>(b.last||0)-(a.last||0));
   const show = state.showAllHosp ? ranked : ranked.slice(0,12);
   $('hosp-title').textContent = `${state.prov} — รายโรงพยาบาล (${ranked.length} หน่วย)`;
   $('hosp-more').textContent = state.showAllHosp ? 'ย่อเหลือ 12' : `แสดงทั้งหมด ${ranked.length}`;
   $('hosp-more').style.display = ranked.length>12?'':'none';
   const g = $('hosp-grid'); g.innerHTML='';
-  for (const {h,v,last} of show){
+  for (const {h,v,last,partial} of show){
     const info = H[h];
     const card = document.createElement('div');
     card.className='card mini';
-    card.innerHTML = `<h4>${info.n.replace('โรงพยาบาล','รพ.')} <span class="v">${last!=null?fmt(last/udiv):'–'}</span></h4>
+    card.innerHTML = `<h4>${info.n.replace('โรงพยาบาล','รพ.')} <span class="v">${last!=null?fmt(last/udiv)+(partial?'*':''):'–'}</span></h4>
       <p class="csub">${info.s?info.s+' · ':''}${info.a==='นอก สธ.'?'นอก สธ.':(info.g||'')}</p><svg viewBox="0 0 300 100"></svg>`;
     g.appendChild(card);
     lineChart(card.querySelector('svg'), v, {w:300,h:100,padT:10,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
