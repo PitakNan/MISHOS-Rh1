@@ -86,8 +86,14 @@ td:first-child{text-align:left;font-family:var(--sans);font-size:12.5px}
 tr:hover td{background:var(--accent-soft)}
 
 #tooltip{position:fixed;pointer-events:none;background:var(--ink);color:var(--page);
-  font-size:12px;font-family:var(--mono);padding:5px 9px;border-radius:6px;z-index:50;
-  display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  font-size:12px;font-family:var(--mono);padding:6px 10px;border-radius:6px;z-index:50;
+  display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);max-width:280px}
+#tooltip .bd-hd{white-space:nowrap}
+#tooltip .bd-rows{margin-top:5px;padding-top:5px;border-top:1px solid rgba(127,127,127,.4);white-space:normal}
+#tooltip .bd-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;line-height:1.6}
+#tooltip .bd-row .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+#tooltip .bd-row .v{flex-shrink:0;font-variant-numeric:tabular-nums}
+#tooltip .bd-more{opacity:.65;font-size:10.5px;margin-top:2px}
 
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;
   align-items:center;justify-content:center;padding:20px}
@@ -145,7 +151,7 @@ footer{margin-top:34px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
       <div class="ytd" id="stat-ytd"></div>
     </div>
     <div class="card">
-      <h3>ภาพรวมทั้งเขต<span class="info-ic" data-tip="กราฟเส้นยอดรวมทั้งเขตสุขภาพที่ 1 รายปีงบ (2560-2569) จุดทึบ=ปีเต็ม 12 เดือน จุดโปร่ง+เส้นประ=ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — ชี้ที่จุดเพื่อดู % เปลี่ยนแปลงจากปีก่อนหน้า">i</span></h3>
+      <h3>ภาพรวมทั้งเขต<span class="info-ic" data-tip="กราฟเส้นยอดรวมทั้งเขตสุขภาพที่ 1 รายปีงบ (2560-2569) จุดทึบ=ปีเต็ม 12 เดือน จุดโปร่ง+เส้นประ=ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — ชี้ที่จุดเพื่อดู % เปลี่ยนแปลงจากปีก่อนหน้า · ถ้ารายงานนี้มีข้อมูลแยกกองทุน/รหัส (เช่น การเงิน/รายรับ) จะโชว์สัดส่วน Top 10 กองทุนของปีนั้นให้ด้วย (รอบแรกอาจโหลดข้อมูลกองทุนสักครู่)">i</span></h3>
       <p class="csub" id="region-sub"></p>
       <svg id="region-chart" viewBox="0 0 960 200" role="img" aria-label="กราฟแท่งยอดรวมทั้งเขตรายปีงบ"></svg>
     </div>
@@ -344,7 +350,28 @@ function lineChart(svg, vals, opt={}){
       }
     }
     if (!opt.labels && !opt.tipLabels && YEARS[i]===PARTIAL) txt += ' · ไม่เต็มปี';
-    tip.textContent = txt;
+    let html = `<div class="bd-hd">${txt}</div>`;
+    if (!opt.labels && !opt.tipLabels && opt.breakdownScope && AGG.reports[state.report].kind==='breakdown'){
+      const {rows, allLoaded} = sumBreakdownSync(opt.breakdownScope, state.report, YEARS[i], state.metric);
+      if (rows.length){
+        const total = vals[i]; // ใช้ยอดรวมจริงของปี/ขอบเขตนั้นเป็นฐาน % (ตรงกับตัวเลขบนกราฟ)
+        const top = rows.slice(0,10);
+        const restSum = rows.slice(10).reduce((s,r)=>s+r.value,0);
+        const restN = rows.length-10;
+        html += '<div class="bd-rows">' + top.map(r=>{
+          const pct = total ? (r.value/total*100) : null;
+          return `<div class="bd-row"><span class="n">${r.d||r.code}</span><span class="v">${fmt(r.value/(opt.div||1))}${pct!=null?' ('+pct.toFixed(1)+'%)':''}</span></div>`;
+        }).join('');
+        if (restN>0){
+          const pct = total ? (restSum/total*100) : null;
+          html += `<div class="bd-row bd-more"><span class="n">อื่นๆ (${restN} รายการ)</span><span class="v">${fmt(restSum/(opt.div||1))}${pct!=null?' ('+pct.toFixed(1)+'%)':''}</span></div>`;
+        }
+        html += '</div>';
+      } else if (!allLoaded){
+        html += '<div class="bd-rows" style="opacity:.6">กำลังโหลดรายละเอียดกองทุน…</div>';
+      }
+    }
+    tip.innerHTML = html;
     tip.style.display='block';
     tip.style.left = Math.min(e.clientX+14, innerWidth-tip.offsetWidth-8)+'px';
     tip.style.top = (e.clientY-30)+'px';
@@ -395,9 +422,11 @@ function renderAll(){
   const pi = YEARS.indexOf(PARTIAL);
   $('stat-ytd').classList.toggle('hidden', region[pi]!=null);
   $('stat-ytd').innerHTML = region[pi]!=null ? '' : `ปีงบ ${PARTIAL}: ยังไม่มีข้อมูล`;
+  // ถ้ารายงานนี้มีข้อมูลแยกกองทุน/รหัส เตรียมโหลด shard ทุก รพ. ในเขตไว้ล่วงหน้า (พื้นหลัง ไม่บล็อก) เพื่อให้ hover ดูสัดส่วนกองทุนได้ทันที
+  if (AGG.reports[state.report].kind==='breakdown') prefetchShards(hs);
   // region chart
   $('region-sub').textContent = `${mlabel} · หน่วย: ${ulab||'ตามจริง'} · ${hs.length} หน่วยบริการ`;
-  lineChart($('region-chart'), region, {w:960,h:200,padT:24,direct:true,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
+  lineChart($('region-chart'), region, {w:960,h:200,padT:24,direct:true,div:udiv,unit:ulab,partialIdx:pi,ipGuard,breakdownScope:hs});
   // provinces
   const pg = $('prov-grid'); pg.innerHTML='';
   for (const p of PROVS){
@@ -409,7 +438,7 @@ function renderAll(){
     card.innerHTML = `<h4>${p} <span class="v">${l>=0?fmt(vals[l]/udiv)+partialMark(l):'–'} ${ulab}</span></h4>
       <p class="csub">${phs.length} หน่วย</p><svg viewBox="0 0 300 110"></svg>`;
     pg.appendChild(card);
-    lineChart(card.querySelector('svg'), vals, {w:300,h:110,padT:12,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
+    lineChart(card.querySelector('svg'), vals, {w:300,h:110,padT:12,div:udiv,unit:ulab,partialIdx:pi,ipGuard,breakdownScope:phs});
     card.addEventListener('click', ()=>{ state.prov = state.prov===p?null:p; state.showAllHosp=false; renderAll();
       if(state.prov) $('hosp-section').scrollIntoView({behavior:'smooth',block:'nearest'}); });
   }
@@ -436,7 +465,7 @@ function renderHosp(udiv, ulab, pi){
     card.innerHTML = `<h4>${info.n.replace('โรงพยาบาล','รพ.')} <span class="v">${last!=null?fmt(last/udiv)+(partial?'*':''):'–'}</span></h4>
       <p class="csub">${info.s?info.s+(popBracket(info)?' '+popBracket(info):''):(info.a==='นอก สธ.'?'นอก สธ.':'')}</p><svg viewBox="0 0 300 100"></svg>`;
     g.appendChild(card);
-    lineChart(card.querySelector('svg'), v, {w:300,h:100,padT:10,div:udiv,unit:ulab,partialIdx:pi,ipGuard});
+    lineChart(card.querySelector('svg'), v, {w:300,h:100,padT:10,div:udiv,unit:ulab,partialIdx:pi,ipGuard,breakdownScope:[h]});
     card.addEventListener('click', ()=> openHosp(h));
   }
 }
@@ -455,17 +484,37 @@ function renderTable(udiv, ulab){
   $('prov-table').innerHTML = html;
 }
 
-// ── hospital monthly modal (lazy shard) ──
+// ── hospital shard loader (lazy, cached) — ต้องปลอดภัยตอนโหลดพร้อมกันหลาย รพ. (prefetch กองทุนย่อย) ──
 const shardCache = {};
+window.MISHOS_HOSP_CB = d => { shardCache[d.hcode] = d; }; // ตั้งครั้งเดียว แค่เก็บ ไม่ resolve ตรงนี้ (กันชนกันตอนโหลดพร้อมกันหลายไฟล์)
 function loadShard(h){
+  if (shardCache[h]) return Promise.resolve(shardCache[h]);
   return new Promise((res, rej)=>{
-    if (shardCache[h]) return res(shardCache[h]);
-    window.MISHOS_HOSP_CB = d => { shardCache[d.hcode]=d; res(d); };
     const sc = document.createElement('script');
     sc.src = `data/hosp/H${h}.js`;
+    sc.onload = () => shardCache[h] ? res(shardCache[h]) : rej(new Error('ข้อมูลไม่ตรง hcode'));
     sc.onerror = ()=>rej(new Error('โหลดข้อมูลไม่ได้'));
     document.body.appendChild(sc);
   });
+}
+function prefetchShards(hcodes){ hcodes.forEach(h => loadShard(h).catch(()=>{})); } // fire-and-forget, ไว้ทำ breakdown กองทุนตอน hover
+function sumBreakdownSync(hcodes, report, fy, metric){ // รวมยอดแยกรหัส/กองทุนข้าม รพ. จาก shard ที่โหลดไว้แล้วเท่านั้น (sync, ไม่รอโหลด)
+  const byCode = {};
+  let allLoaded = true;
+  for (const h of hcodes){
+    const d = shardCache[h];
+    if (!d){ allLoaded = false; continue; }
+    const byFy = d.breakdown?.[report]?.[fy];
+    if (!byFy) continue;
+    for (const [code,row] of Object.entries(byFy)){
+      const v = row.v?.[metric];
+      if (v==null) continue;
+      if (!byCode[code]) byCode[code] = {d:row.d, pd:row.pd, value:0};
+      byCode[code].value += v;
+    }
+  }
+  const rows = Object.entries(byCode).map(([code,o])=>({code,...o})).sort((a,b)=>b.value-a.value);
+  return {rows, allLoaded};
 }
 async function openHosp(h){
   const info = H[h];

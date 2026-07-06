@@ -515,12 +515,13 @@ function renderAll(){
 
 // ── code-level breakdown (lazy shard) ──
 const shardCache = {};
+window.MISHOS_HOSP_CB = d => { shardCache[d.hcode] = d; }; // ตั้งครั้งเดียว แค่เก็บ ไม่ resolve ตรงนี้ (กันชนกันถ้าเผลอโหลดซ้อนกัน)
 function loadShard(h){
+  if (shardCache[h]) return Promise.resolve(shardCache[h]);
   return new Promise((res, rej)=>{
-    if (shardCache[h]) return res(shardCache[h]);
-    window.MISHOS_HOSP_CB = d => { shardCache[d.hcode]=d; res(d); };
     const sc = document.createElement('script');
     sc.src = `data/hosp/H${h}.js`;
+    sc.onload = () => shardCache[h] ? res(shardCache[h]) : rej(new Error('ข้อมูลไม่ตรง hcode'));
     sc.onerror = ()=>rej(new Error('โหลดข้อมูลไม่ได้'));
     document.body.appendChild(sc);
   });
