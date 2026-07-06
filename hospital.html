@@ -106,6 +106,10 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <div class="fld"><label>รายงาน</label><select id="sel-report"></select></div>
     <div class="fld"><label>ตัวชี้วัด</label><select id="sel-metric"></select></div>
     <div class="fld"><label>เส้นอ้างอิงเปรียบเทียบ</label><select id="sel-ref"></select></div>
+    <div class="fld"><label>ค่ากลางกลุ่ม</label><select id="sel-center">
+      <option value="median">มัธยฐาน</option>
+      <option value="mean">ค่าเฉลี่ย</option>
+    </select></div>
     <div class="fld"><label>ตัวหาร</label><select id="sel-norm">
       <option value="raw">ค่าดิบ</option>
       <option value="bed">ต่อเตียง</option>
@@ -156,7 +160,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </div>
 
   <footer>
-    กติกา: มัธยฐานกลุ่มไม่รวม รพ. ที่เลือก (C-2) · กลุ่ม n=1 แสดงค่าตามจริง (C-3) ·
+    กติกา: ค่ากลางกลุ่ม (มัธยฐาน/ค่าเฉลี่ย เลือกได้) ไม่รวม รพ. ที่เลือก (C-2) · กลุ่ม n=1 แสดงค่าตามจริง (C-3) ·
     รายงาน IP ปี 2560–2562 เป็นช่วงเริ่มระบบ ไม่ใช้คำนวณอัตราโต (R-2) ·
     ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — รวมแสดง/จัดอันดับแล้ว (เครื่องหมาย * กำกับ) แต่ยังไม่รวมคำนวณอัตราโต/CAGR (R-3)
   </footer>
@@ -192,7 +196,7 @@ let state = {
   h: qs.get('h') && H[qs.get('h')] ? qs.get('h') : '10713',
   report: qs.get('r') && AGG.reports[qs.get('r')] ? qs.get('r') : 'budget',
   metric: qs.get('m') || 'BUDGET',
-  ref: 'group_region', norm: 'raw', peers: [],
+  ref: 'group_region', norm: 'raw', peers: [], center: 'median',
 };
 const $ = id => document.getElementById(id);
 function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
@@ -234,6 +238,10 @@ function groupMembers(){
 function median(arr){ const a=arr.filter(v=>v!=null&&isFinite(v)).sort((x,y)=>x-y);
   if(!a.length) return null; const m=a.length>>1;
   return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+function mean(arr){ const a=arr.filter(v=>v!=null&&isFinite(v));
+  if(!a.length) return null; return a.reduce((s,v)=>s+v,0)/a.length; }
+function centerFn(arr){ return state.center==='mean' ? mean(arr) : median(arr); }
+function centerLabel(){ return state.center==='mean' ? 'ค่าเฉลี่ย' : 'มัธยฐาน'; }
 function refSeries(members){
   const out = Array(NY).fill(null);
   const perH = members.map(x=>seriesNorm(x)).filter(Boolean);
@@ -356,8 +364,8 @@ function dotPlot(svg, values, selfVal, div){
   const X=v=>pad+(W-2*pad)*(v-mn)/span;
   let s=`<line x1="${pad}" y1="45" x2="${W-pad}" y2="45" stroke="var(--line)" stroke-width="1.5"/>`;
   for(const v of vs) s+=`<circle cx="${X(v)}" cy="45" r="5" fill="var(--blue)" fill-opacity="0.45"/>`;
-  const md=median(vs);
-  if(md!=null) s+=`<line x1="${X(md)}" y1="28" x2="${X(md)}" y2="62" stroke="var(--blue)" stroke-width="2" stroke-dasharray="3 2"/><text x="${X(md)}" y="22" text-anchor="middle" font-size="9" fill="var(--blue)">มัธยฐาน</text>`;
+  const md=centerFn(vs);
+  if(md!=null) s+=`<line x1="${X(md)}" y1="28" x2="${X(md)}" y2="62" stroke="var(--blue)" stroke-width="2" stroke-dasharray="3 2"/><text x="${X(md)}" y="22" text-anchor="middle" font-size="9" fill="var(--blue)">${centerLabel()}</text>`;
   if(selfVal!=null) s+=`<circle cx="${X(selfVal)}" cy="45" r="7" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/><text x="${X(selfVal)}" y="78" text-anchor="middle" font-size="9" fill="var(--accent)">รพ.นี้</text>`;
   s+=`<text x="${pad}" y="${Hh-2}" font-size="8.5" fill="var(--ink-3)">${fmt(mn/div)}</text><text x="${W-pad}" y="${Hh-2}" text-anchor="end" font-size="8.5" fill="var(--ink-3)">${fmt(mx/div)}</text>`;
   svg.innerHTML=s;
@@ -380,14 +388,14 @@ function buildNarrative(hospN, refN, members, div, ulab){
     const dir = g.rate>=0.005?'▲ โต':g.rate<=-0.005?'▼ ลดลง':'→ ทรงตัว';
     let t = `${mlabel}: <b>${dir} ${fmt(Math.abs(g.rate)*100,1)}%/ปี</b> ช่วงปีงบ ${g.from}→${g.to}`;
     const gr = cagr(refN, ip);
-    if (gr) t += ` — ${g.rate>gr.rate+0.002?'เร็วกว่า':g.rate<gr.rate-0.002?'ช้ากว่า':'พอๆ กับ'}มัธยฐานกลุ่ม (${fmt(gr.rate*100,1)}%/ปี)`;
+    if (gr) t += ` — ${g.rate>gr.rate+0.002?'เร็วกว่า':g.rate<gr.rate-0.002?'ช้ากว่า':'พอๆ กับ'}${centerLabel()}กลุ่ม (${fmt(gr.rate*100,1)}%/ปี)`;
     items.push([g.rate>=0?'📈':'📉', t]);
   }
   // 2) ระดับปีล่าสุด vs กลุ่ม
   if (refN[li]!=null && refN[li]>0){
     const diff=(hospN[li]-refN[li])/refN[li]*100;
     items.push([Math.abs(diff)<5?'⚖️':diff>0?'🟢':'🟠',
-      `ปีงบ ${yearLbl(li)}: <b>${fmt(hospN[li]/div)} ${ulab}</b> ${diff>=0?'สูงกว่า':'ต่ำกว่า'}มัธยฐานกลุ่ม <b>${fmt(Math.abs(diff),1)}%</b> (กลุ่ม ${fmt(refN[li]/div)})`]);
+      `ปีงบ ${yearLbl(li)}: <b>${fmt(hospN[li]/div)} ${ulab}</b> ${diff>=0?'สูงกว่า':'ต่ำกว่า'}${centerLabel()}กลุ่ม <b>${fmt(Math.abs(diff),1)}%</b> (กลุ่ม ${fmt(refN[li]/div)})`]);
   } else if (members.length===1){
     const pv = serAct(members[0]);
     if (pv && pv[li]!=null) items.push(['👥',`กลุ่มเทียบมีสมาชิกเดียว (${H[members[0]].n.replace('โรงพยาบาล','รพ.')}) — ปีงบ ${yearLbl(li)}: รพ.นี้ ${fmt(hospN[li]/div)} vs ${fmt(pv[li]/div)} ${ulab}`]);
@@ -406,6 +414,7 @@ function buildNarrative(hospN, refN, members, div, ulab){
   if (ip) items.push(['⚠️','รายงาน IP: ปี 2560–2562 เป็นช่วงเริ่มระบบ ไม่ถูกนำมาคิดอัตราโต (กติกา R-2)']);
   if (liPartial) items.push(['🕗',`ปีงบ ${PARTIAL} มีข้อมูลเพียง ~9 เดือน — ตัวเลข "ปีล่าสุด" ด้านบนใช้ปีนี้แล้ว แต่เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้ (อัตราโตด้านบนยังคำนวณถึงปีเต็มล่าสุดเท่านั้น)`]);
   if (state.norm!=='raw' && !divisor(state.h)) items.push(['ℹ️','รพ. นี้ไม่มีตัวหาร (เตียง/ประชากร) — แสดงค่าดิบแทน']);
+  if (state.center==='mean' && members.length>2) items.push(['ℹ️','กำลังเทียบด้วยค่าเฉลี่ยกลุ่ม — ค่านี้ถูกดึงสูง/ต่ำผิดปกติได้ง่ายจาก รพ. ที่มีขนาดต่างจากกลุ่มมาก (ลองสลับเป็นมัธยฐานเพื่อดูค่ากลางที่ทนต่อค่าผิดปกติกว่า)']);
   return items;
 }
 
@@ -424,7 +433,7 @@ function renderAll(){
   const refN = (function(){ // ref series ใช้ normalization เดียวกับ รพ. เสมอ
     const out=Array(NY).fill(null);
     const per = members.map(x=>serAct(x)).filter(Boolean);
-    for(let i=0;i<NY;i++) out[i]=median(per.map(s=>s[i]));
+    for(let i=0;i<NY;i++) out[i]=centerFn(per.map(s=>s[i]));
     return out;
   })();
 
@@ -445,8 +454,8 @@ function renderAll(){
   $('narr-list').innerHTML = buildNarrative(hospN, refN, members, div, ulab)
     .map(([ic,t])=>`<li><span class="ic">${ic}</span><span>${t}</span></li>`).join('');
 
-  $('chart-title').textContent = `${mlabel} — ${me.n.replace('โรงพยาบาล','รพ.')} เทียบมัธยฐานกลุ่ม`;
-  $('chart-sub').textContent = `หน่วย: ${ulab} · เส้นเขียว = รพ.นี้ · เส้นน้ำเงิน = มัธยฐาน${refName()} · ช่วงประ+จุดโปร่ง = ปีงบ ${PARTIAL} (~9 เดือน ไม่เต็มปี — รวมใช้เทียบแล้ว)`;
+  $('chart-title').textContent = `${mlabel} — ${me.n.replace('โรงพยาบาล','รพ.')} เทียบ${centerLabel()}กลุ่ม`;
+  $('chart-sub').textContent = `หน่วย: ${ulab} · เส้นเขียว = รพ.นี้ · เส้นน้ำเงิน = ${centerLabel()}${refName()} · ช่วงประ+จุดโปร่ง = ปีงบ ${PARTIAL} (~9 เดือน ไม่เต็มปี — รวมใช้เทียบแล้ว)`;
   const refNote = refN.every(v=>v==null)
     ? (state.ref==='custom'
         ? (state.peers.length ? 'รพ.ที่เลือกเทียบไม่มีข้อมูลตัวชี้วัดนี้' : '⚠ ยังไม่ได้เลือก รพ. เทียบ — เลือกในช่องด้านบน')
@@ -455,7 +464,7 @@ function renderAll(){
   mainChart($('main-chart'), hospN, refN, div, ulab, refNote);
   $('chart-legend').innerHTML = `
     <span><span class="sw" style="background:var(--accent)"></span>${me.n.replace('โรงพยาบาล','รพ.')}</span>
-    <span><span class="sw line" style="background:var(--blue)"></span>มัธยฐาน ${refName()} (n=${members.length})</span>`;
+    <span><span class="sw line" style="background:var(--blue)"></span>${centerLabel()} ${refName()} (n=${members.length})</span>`;
 
   // rank card
   const li = lastAvail(hospN);
@@ -517,7 +526,7 @@ async function renderCodeTable(){
 function renderMetricTable(members){
   const ms = AGG.reports[state.report].metrics;
   const raw = seriesRaw(state.h);
-  let html = '<thead><tr><th>ตัวชี้วัด</th><th>รพ.นี้</th><th>มัธยฐานกลุ่ม</th><th>ต่าง %</th><th>อันดับ</th></tr></thead><tbody>';
+  let html = `<thead><tr><th>ตัวชี้วัด</th><th>รพ.นี้</th><th>${centerLabel()}กลุ่ม</th><th>ต่าง %</th><th>อันดับ</th></tr></thead><tbody>`;
   const saveM = state.metric;
   let anyPartial = false;
   for (const m of Object.keys(ms)){
@@ -526,7 +535,7 @@ function renderMetricTable(members){
     if (li<0){ html+=`<tr><td>${ms[m]}</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>`; continue; }
     const liPartial = YEARS[li]===PARTIAL; if (liPartial) anyPartial = true;
     const mem = members.map(x=>seriesRaw(x)[li]).filter(v=>v!=null);
-    const md = median(mem);
+    const md = centerFn(mem);
     const diff = md ? (hv[li]-md)/md*100 : null;
     const ranked=[hv[li],...mem].filter(v=>v!=null).sort((a,b)=>b-a);
     const pos = ranked.indexOf(hv[li])+1;
@@ -544,6 +553,7 @@ $('sel-hosp').addEventListener('change', e=>{ state.h=e.target.value; renderCont
 $('sel-report').addEventListener('change', e=>{ state.report=e.target.value; renderMetricSel(); renderAll(); });
 $('sel-metric').addEventListener('change', e=>{ state.metric=e.target.value; renderAll(); });
 $('sel-ref').addEventListener('change', e=>{ state.ref=e.target.value; renderAll(); });
+$('sel-center').addEventListener('change', e=>{ state.center=e.target.value; renderAll(); });
 $('sel-norm').addEventListener('change', e=>{ state.norm=e.target.value; renderAll(); });
 $('sel-peers').addEventListener('change', e=>{ state.peers=[...e.target.selectedOptions].map(o=>o.value); renderAll(); });
 $('theme-toggle').addEventListener('click', ()=>{

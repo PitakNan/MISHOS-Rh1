@@ -96,6 +96,10 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <div class="fld"><label>รายงาน</label><select id="sel-report"></select></div>
     <div class="fld"><label>ตัวชี้วัด</label><select id="sel-metric"></select></div>
     <div class="fld"><label>ปีงบ</label><select id="sel-fy"></select></div>
+    <div class="fld"><label>ค่ากลางกลุ่ม</label><select id="sel-center">
+      <option value="median">มัธยฐาน</option>
+      <option value="mean">ค่าเฉลี่ย</option>
+    </select></div>
     <div class="fld"><label>ตัวหาร</label><select id="sel-norm">
       <option value="raw">ค่าดิบ</option>
       <option value="bed">ต่อเตียง</option>
@@ -105,7 +109,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 
   <div class="stat-strip">
     <div class="card stat"><div class="lbl">สมาชิกกลุ่ม</div><div class="val" id="s-n">–</div></div>
-    <div class="card stat"><div class="lbl">มัธยฐานกลุ่ม</div><div class="val" id="s-med">–</div></div>
+    <div class="card stat"><div class="lbl" id="s-med-lbl">มัธยฐานกลุ่ม</div><div class="val" id="s-med">–</div></div>
     <div class="card stat"><div class="lbl">สูงสุด</div><div class="val" id="s-max">–</div></div>
     <div class="card stat"><div class="lbl">ต่ำสุด</div><div class="val" id="s-min">–</div></div>
   </div>
@@ -116,7 +120,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <p class="csub" id="fy-warn" style="display:none;color:var(--warn);font-weight:600"></p>
     <div class="legend">
       <span><span class="sw" style="background:var(--accent)"></span>ค่ารายโรง</span>
-      <span><span class="sw mline"></span>เส้นมัธยฐานกลุ่ม</span>
+      <span><span class="sw mline"></span><span id="legend-center-lbl">เส้นมัธยฐานกลุ่ม</span></span>
     </div>
     <div class="rows" id="rows"></div>
   </div>
@@ -152,7 +156,7 @@ let state = {
   group: qs.get('g') || 'region',
   report: qs.get('r') && AGG.reports[qs.get('r')] ? qs.get('r') : 'budget',
   metric: qs.get('m') || 'BUDGET',
-  fy: null, norm: 'raw',
+  fy: null, norm: 'raw', center: 'median',
 };
 const $ = id => document.getElementById(id);
 function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
@@ -166,6 +170,10 @@ function unitOf(vals){ const mx=Math.max(...vals.filter(v=>v!=null).map(Math.abs
 function unitLbl(div,m){ const b=unitBase(m); return div===1e6?'ล้าน'+b:div===1e3?'พัน'+b:b; }
 function median(arr){ const a=arr.filter(v=>v!=null&&isFinite(v)).sort((x,y)=>x-y);
   if(!a.length) return null; const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+function mean(arr){ const a=arr.filter(v=>v!=null&&isFinite(v));
+  if(!a.length) return null; return a.reduce((s,v)=>s+v,0)/a.length; }
+function centerFn(arr){ return state.center==='mean' ? mean(arr) : median(arr); }
+function centerLabel(){ return state.center==='mean' ? 'ค่าเฉลี่ย' : 'มัธยฐาน'; }
 function seriesRaw(h){ return (AGG.annual[h]?.[state.report]?.[state.metric]) || Array(NY).fill(null); }
 function divisor(h){ if(state.norm==='bed') return H[h].b||null; if(state.norm==='pop') return H[h].pop?H[h].pop/1000:null; return 1; }
 function valAt(h, fyIdx){ const raw=seriesRaw(h); if(raw[fyIdx]==null) return null;
@@ -230,11 +238,13 @@ function renderAll(){
   const data = members.map(h=>({h, v:valAt(h,fyIdx)})).filter(o=>o.v!=null);
   data.sort((a,b)=>b.v-a.v);
   const vals = data.map(o=>o.v);
-  const md = median(vals), mx = Math.max(...vals,0), mn = vals.length?Math.min(...vals):0;
+  const md = centerFn(vals), mx = Math.max(...vals,0), mn = vals.length?Math.min(...vals):0;
   const div = unitOf(vals), ulab = unitLbl(div, state.metric);
   const mlabel = AGG.reports[state.report].metrics[state.metric];
 
   const fyPartial = state.fy===PARTIAL;
+  $('s-med-lbl').textContent = `${centerLabel()}กลุ่ม`;
+  $('legend-center-lbl').textContent = `เส้น${centerLabel()}กลุ่ม`;
   $('s-n').textContent = data.length + (skippedForNorm?` (+${skippedForNorm} ไม่มีตัวหาร)`:'');
   $('s-med').textContent = md!=null ? fmt(md/div)+(fyPartial?'*':'')+' '+ulab : '–';
   $('s-max').textContent = vals.length ? fmt(mx/div)+(fyPartial?'*':'')+' '+ulab : '–';
@@ -242,8 +252,11 @@ function renderAll(){
 
   $('chart-title').textContent = `${mlabel} — ${groupLabel()}`;
   $('chart-sub').textContent = `ปีงบ ${state.fy}${fyPartial?'*':''} · หน่วย: ${ulab}${state.norm!=='raw'?' · '+$('sel-norm').selectedOptions[0].text:''} · เรียงจากมากไปน้อย`;
-  $('fy-warn').style.display = fyPartial ? '' : 'none';
-  $('fy-warn').textContent = fyPartial ? '* ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — จัดอันดับภายในปีนี้เทียบกันเองได้ปกติ แต่เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้' : '';
+  const warns = [];
+  if (fyPartial) warns.push('* ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน — จัดอันดับภายในปีนี้เทียบกันเองได้ปกติ แต่เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้');
+  if (state.center==='mean' && data.length>2) warns.push('กำลังใช้ค่าเฉลี่ยกลุ่ม — ถูกดึงสูง/ต่ำผิดปกติได้ง่ายจาก รพ. ขนาดใหญ่/เล็กผิดปกติในกลุ่ม (ลองสลับเป็นมัธยฐานเพื่อดูค่ากลางที่ทนต่อค่าผิดปกติกว่า)');
+  $('fy-warn').style.display = warns.length ? '' : 'none';
+  $('fy-warn').textContent = warns.join(' · ');
 
   const rows = $('rows');
   if (!data.length){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของรายงาน/ปีงบนี้ในกลุ่มที่เลือก</div>`; return; }
@@ -266,6 +279,7 @@ $('sel-group').addEventListener('change', e=>{ state.group=e.target.value; rende
 $('sel-report').addEventListener('change', e=>{ state.report=e.target.value; renderMetricSel(); renderFySel(); renderAll(); });
 $('sel-metric').addEventListener('change', e=>{ state.metric=e.target.value; renderAll(); });
 $('sel-fy').addEventListener('change', e=>{ state.fy=+e.target.value; renderAll(); });
+$('sel-center').addEventListener('change', e=>{ state.center=e.target.value; renderAll(); });
 $('sel-norm').addEventListener('change', e=>{ state.norm=e.target.value; renderAll(); });
 $('theme-toggle').addEventListener('click', ()=>{
   const next = document.documentElement.dataset.theme==='dark' ? 'light':'dark';
