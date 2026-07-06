@@ -108,7 +108,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </nav>
 
   <div class="controls">
-    <div class="fld"><label>โรงพยาบาล</label><select id="sel-hosp"></select></div>
+    <div class="fld"><label>โรงพยาบาล<span class="info-ic" data-tip="ท้ายชื่อ รพ. คือประเภทขนาด (A/S/M1/M2/F1-F3 ตามเกณฑ์ สธ.) ตามด้วยช่วงประชากรในเขตรับผิดชอบหรือจำนวนเตียงของกลุ่มขนาดนั้น เช่น 'F3 <=15,000' = ขนาด F3 กลุ่มประชากร ≤15,000 คน · หน่วยนอกสังกัด สธ. ไม่มีขนาด/GroupName จะโชว์ (นอก สธ.) แทน">i</span></label><select id="sel-hosp"></select></div>
     <div class="fld"><label>รายงาน</label><select id="sel-report"></select></div>
     <div class="fld"><label>ตัวชี้วัด</label><select id="sel-metric"></select></div>
     <div class="fld"><label>เส้นอ้างอิงเปรียบเทียบ<span class="info-ic" data-tip="กำหนดว่าจะเอา รพ. กลุ่มไหนมาคำนวณ 'ค่ากลางกลุ่ม' เพื่อเทียบกับ รพ. ที่เลือก — เลือกได้ทั้ง GroupName เดียวกัน, ขนาดเดียวกัน (A-F3), จังหวัดเดียวกัน, ทั้งเขต หรือเลือก รพ. เทียบเอง">i</span></label><select id="sel-ref"></select></div>
@@ -121,7 +121,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
       <option value="bed">ต่อเตียง</option>
       <option value="pop">ต่อประชากร UC 1,000 คน</option>
     </select></div>
-    <div class="fld hidden" id="peer-fld"><label>เลือก รพ. เทียบเอง (Ctrl+คลิก เลือกหลายแห่ง)</label>
+    <div class="fld hidden" id="peer-fld"><label>เลือก รพ. เทียบเอง (Ctrl+คลิก เลือกหลายแห่ง)<span class="info-ic" data-tip="ท้ายชื่อ รพ. คือประเภทขนาด+ช่วงประชากร/เตียง เหมือนช่องเลือกโรงพยาบาลด้านซ้าย เช่น 'F3 <=15,000' = ขนาด F3 กลุ่มประชากร ≤15,000 คน — ใช้ตัวเลขนี้ช่วยเลือก รพ. ขนาดใกล้เคียงกันมาเทียบเอง">i</span></label>
       <select id="sel-peers" multiple size="6"></select></div>
   </div>
 
@@ -293,18 +293,31 @@ function cagr(vals, ipGuard){
 }
 
 // ── controls ──
+function popBracket(info){ // "รพช.F3 P<=15,000" → "<=15,000" (ตัดคำนำหน้าประเภท + ตัวอักษร P/B ออก)
+  if (!info.g) return null;
+  const parts = info.g.split(' ');
+  return parts.slice(1).join(' ').replace(/^[PB]/,'');
+}
+function hospLabel(h){ // ชื่อ + ประเภท/ขนาด + ช่วงประชากร(หรือเตียง) เช่น "รพ.xxx — F3 <=15,000"
+  const info = H[h];
+  const name = info.n.replace('โรงพยาบาล','รพ.');
+  const br = popBracket(info);
+  if (info.s && br) return `${name} — ${info.s} ${br}`;
+  if (info.a==='นอก สธ.') return `${name} (นอก สธ.)`;
+  return name;
+}
 function renderControls(){
   $('sel-hosp').innerHTML = PROVS.map(p=>
     `<optgroup label="${p}">`+Object.keys(H).filter(h=>H[h].p===p)
       .sort((a,b)=>H[a].n.localeCompare(H[b].n,'th'))
-      .map(h=>`<option value="${h}" ${h===state.h?'selected':''}>${H[h].n.replace('โรงพยาบาล','รพ.')}${H[h].s?' ('+H[h].s+')':''}</option>`).join('')+'</optgroup>').join('');
+      .map(h=>`<option value="${h}" ${h===state.h?'selected':''}>${hospLabel(h)}</option>`).join('')+'</optgroup>').join('');
   $('sel-report').innerHTML = GROUPS.map(([g,keys])=>
     `<optgroup label="${g}">`+keys.filter(k=>AGG.reports[k]).map(k=>
       `<option value="${k}" ${k===state.report?'selected':''}>${AGG.reports[k].label}</option>`).join('')+'</optgroup>').join('');
   $('sel-ref').innerHTML = REF_MODES.map(([v,l])=>`<option value="${v}" ${v===state.ref?'selected':''}>${l}</option>`).join('');
   $('sel-peers').innerHTML = PROVS.map(p=>
     `<optgroup label="${p}">`+Object.keys(H).filter(h=>H[h].p===p && h!==state.h)
-      .map(h=>`<option value="${h}" ${state.peers.includes(h)?'selected':''}>${H[h].n.replace('โรงพยาบาล','รพ.')}</option>`).join('')+'</optgroup>').join('');
+      .map(h=>`<option value="${h}" ${state.peers.includes(h)?'selected':''}>${hospLabel(h)}</option>`).join('')+'</optgroup>').join('');
   renderMetricSel();
 }
 function renderMetricSel(){
