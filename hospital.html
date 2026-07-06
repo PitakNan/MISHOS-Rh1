@@ -544,7 +544,8 @@ function renderMetricTable(members){
       <td>${pos>0?pos+'/'+ranked.length:'–'}</td></tr>`;
   }
   state.metric = saveM;
-  $('tbl-sub').textContent = `ค่าดิบ ปีงบล่าสุดที่มีข้อมูลของแต่ละตัวชี้วัด · กลุ่ม: ${refName()}${anyPartial?' · * = ปีงบ 2569 (~9 เดือน)':''}`;
+  const noGroup = members.length===0;
+  $('tbl-sub').textContent = `ค่าดิบ ปีงบล่าสุดที่มีข้อมูลของแต่ละตัวชี้วัด · กลุ่ม: ${refName()} (n=${members.length})${noGroup?' — กลุ่มนี้ไม่มีสมาชิกอื่น จึงเทียบไม่ได้ (คอลัมน์ค่ากลาง/ต่าง% เป็น "–" ทุกแถว) ลองเปลี่ยน "เส้นอ้างอิงเปรียบเทียบ"':''}${anyPartial?' · * = ปีงบ 2569 (~9 เดือน)':''}`;
   $('metric-table').innerHTML = html + '</tbody>';
 }
 
