@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script src="theme.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISHOS — ตารางภาพรวม รพ. ทุกรายงาน×ปีงบ</title>
+<style>
+:root{
+  --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
+  --line:#DCE3DE; --grid:#EDF1EE; --accent:#0E8A5F; --accent-deep:#0A6647; --accent-soft:#E4F1EB;
+  --blue:#3568C0; --blue-soft:#E8EEF9; --warn:#A9701F; --warn-soft:#F5E9D7;
+  --mono:ui-monospace,"SF Mono","Consolas",monospace;
+  --sans:"Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif;
+}
+:root[data-theme="dark"]{
+  --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+  --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+  --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+    --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+    --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1400px;margin:0 auto;padding:20px 22px 80px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header h1{font-size:19px;font-weight:700;margin:0}
+header .sub{font-size:12px;color:var(--ink-2);font-family:var(--mono)}
+.nav{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--line)}
+.nav a{padding:8px 16px;font-size:13.5px;color:var(--ink-2);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px}
+.nav a.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.nav a:hover{color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:12.5px;font-family:var(--sans);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.btn:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px;
+  position:sticky;top:0;z-index:30;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+:root[data-theme="dark"] .controls{box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.controls .fld{display:flex;flex-direction:column;gap:3px}
+.controls label{font-size:11.5px;color:var(--ink-2)}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--ink);font-family:var(--sans);max-width:340px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.csub{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin:0 0 6px}
+.hosp-head{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.hosp-head h2{margin:0;font-size:20px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11.5px;background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:3px 11px;font-weight:600;white-space:nowrap}
+.chip.b{background:var(--blue-soft);color:var(--blue)}
+.chip.w{background:var(--warn-soft);color:var(--warn)}
+.spacer{flex:1}
+.info-ic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  background:var(--ink-3);color:var(--card);font-size:10px;font-weight:700;font-style:normal;cursor:pointer;
+  margin-left:5px;vertical-align:middle;user-select:none;flex-shrink:0}
+.info-ic:hover{background:var(--accent)}
+#info-pop{position:fixed;max-width:320px;background:var(--ink);color:var(--page);font-size:12.5px;line-height:1.55;
+  padding:10px 13px;border-radius:8px;z-index:200;display:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+
+.mx-wrap{overflow:auto;max-height:74vh;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table.mx{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1180px}
+table.mx th, table.mx td{padding:6px 10px;border-bottom:1px solid var(--grid);white-space:nowrap}
+table.mx thead th{position:sticky;top:0;background:var(--card);z-index:6;font-family:var(--mono);font-size:10.5px;
+  color:var(--ink-3);text-align:right;border-bottom:1.5px solid var(--line)}
+table.mx thead th:first-child{text-align:left}
+table.mx td:first-child, table.mx th:first-child{position:sticky;left:0;background:var(--card);z-index:4;text-align:left;
+  font-family:var(--sans);min-width:280px;max-width:340px}
+table.mx thead th:first-child{z-index:7}
+table.mx td{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:11.8px}
+tr.grp td{background:var(--accent-soft);color:var(--accent-deep);font-weight:700;font-family:var(--sans);
+  font-size:12.5px;position:sticky;left:0;z-index:3;padding-top:9px;padding-bottom:9px}
+tr.grp td:first-child{position:static}
+tr.rep{cursor:pointer}
+tr.rep:hover td{background:var(--accent-soft)}
+tr.rep td:first-child{font-weight:600}
+tr.sub td:first-child{padding-left:30px;color:var(--ink-2);font-size:12px}
+tr.sub{display:none}
+tr.sub.show{display:table-row}
+.toggle{display:inline-block;width:14px;color:var(--ink-3);font-size:10px}
+.unit{color:var(--ink-3);font-size:10.5px;font-family:var(--mono)}
+.cell{display:flex;flex-direction:column;align-items:flex-end;gap:1px;line-height:1.3}
+.cell .val{font-weight:600}
+.cell .delta{font-size:9.5px;font-family:var(--sans)}
+.delta.up{color:var(--accent)}
+.delta.dn{color:var(--warn)}
+.delta.flat{color:var(--ink-3)}
+.delta.ip-note{color:var(--warn);cursor:help}
+.dash{color:var(--ink-3)}
+footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>📊 ตารางภาพรวม — ทุกรายงาน × ทุกปีงบ</h1>
+      <div class="sub">MISHOS (สปสช.) · ปีงบ 2560–2569 · <span id="gen-date"></span></div>
+    </div>
+    <button class="btn" id="theme-toggle">◐ โหมดสี</button>
+  </header>
+  <nav class="nav">
+    <a href="index.html">📈 เทรนด์ภาพรวม</a>
+    <a href="hospital.html">🏥 วิเคราะห์ราย รพ.</a>
+    <a href="rank.html">🏆 จัดอันดับ</a>
+    <a href="risk.html">⚠️ เงินเสี่ยง</a>
+    <a class="on" href="matrix.html" aria-current="page">📊 ตารางภาพรวม</a>
+  </nav>
+
+  <div class="controls">
+    <div class="fld"><label>โรงพยาบาล<span class="info-ic" data-tip="ท้ายชื่อ รพ. คือประเภทขนาด (A/S/M1/M2/F1-F3) ตามด้วยช่วงประชากร/เตียงของกลุ่มขนาดนั้น · หน่วยนอกสังกัด สธ. ไม่มีขนาด/GroupName จะโชว์ (นอก สธ.) แทน">i</span></label><select id="sel-hosp"></select></div>
+    <button class="btn" id="exp-all">▾ ขยายทั้งหมด</button>
+    <button class="btn" id="col-all">▸ ย่อทั้งหมด</button>
+    <span class="spacer"></span>
+    <span class="chip">⚠ ปีงบ 2569 มีข้อมูล ~9 เดือน (*) · เทียบลูกศรกับปีนี้ใช้ระมัดระวัง</span>
+  </div>
+
+  <div class="hosp-head">
+    <h2 id="h-name"></h2>
+    <div class="chips" id="h-chips"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <p class="csub" style="margin:0">
+      แถวหลัก (ตัวหนา) = 1 ใน 34 รายงาน/ลิงก์ที่ดึงจาก MISHOS แสดงตัวชี้วัดหลักของรายงานนั้น (เงิน&gt;จำนวนครั้ง&gt;อื่นๆ)
+      <span class="info-ic" data-tip="คลิกแถวหลัก (หรือกด ▸/▾) เพื่อขยายดูตัวชี้วัดย่อยอื่นๆ ของรายงานเดียวกัน (เช่น จำนวนครั้ง, อัตราเฉลี่ย) ที่ซ่อนอยู่ด้านล่าง — รายงานที่มีตัวชี้วัดเดียวจะไม่มีลูกศรขยาย">i</span> ·
+      คอลัมน์คือปีงบประมาณ 2560–2569 · ▲เขียว/▼ส้ม ใต้ตัวเลขคือเทียบกับปีงบก่อนหน้า (% เปลี่ยนแปลง)
+      <span class="info-ic" data-tip="▲ = ตัวเลขปีนี้มากกว่าปีก่อน (ส่วนใหญ่หมายถึงเบิก/ผลงานเพิ่มขึ้น) · ▼ = น้อยกว่าปีก่อน · เป็นทิศทางของตัวเลขเท่านั้น ไม่ได้ตัดสินว่าดี/แย่ทุกรายงาน (เช่น รายงานคุณภาพเบิกที่นับจำนวนข้อผิดพลาด ยิ่งลดยิ่งดี) · ⚠ = ปีฐานเปรียบเทียบเป็นช่วงเริ่มระบบ (IP ปี 2560–2562) ไม่น่าเชื่อถือสำหรับดูอัตราโต">i</span>
+    </p>
+  </div>
+
+  <div class="mx-wrap">
+    <table class="mx" id="mx-table"></table>
+  </div>
+
+  <footer>
+    ค่าดิบของ รพ.ที่เลือกเท่านั้น (ไม่ผ่านตัวหารเตียง/ประชากร) · หน่วยแสดงต่อแถวตามขนาดตัวเลขจริง (บาท/พันบาท/ล้านบาท หรือ ครั้ง/พันครั้ง) ·
+    * = ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน · ⚠ = รายงาน IP ปี 2560–2562 ช่วงเริ่มระบบไม่น่าเชื่อถือ (กติกา R-2) ·
+    ก.ย. ของทุกปีมักพุ่งสูงเพราะยอดเคลมส่งช้าปิดปีงบ (ไม่กระทบตารางนี้เพราะเป็นยอดรายปีอยู่แล้ว)
+  </footer>
+</div>
+
+<script src="data/agg_annual.js"></script>
+<script>
+'use strict';
+const AGG = window.MISHOS_AGG, YEARS = AGG.years, NY = YEARS.length, PARTIAL = AGG.partial_fy, H = AGG.hospitals;
+const PROVS = ['เชียงใหม่','ลำพูน','ลำปาง','แพร่','น่าน','พะเยา','เชียงราย','แม่ฮ่องสอน'];
+const IP_REPORTS = ['ip_ipservice0102','ip_ipmonitor'];
+const GROUPS = [
+ ['การเงิน / รายรับ',['budget','statementuc']],
+ ['ผู้ป่วยใน',['ip_ipservice0102','ip_ipmonitor']],
+ ['บริการเฉพาะทาง',['central_stemi','central_cancer','central_cataract','central_stone','central_instrument_bycode','central_instrument_month','central_palliativecare']],
+ ['ผู้ป่วยนอก / ฉุกเฉิน',['central_opae','central_carrefer_month','central_carrefer_subfund','op_opwalkin','op_opontop_province','op_opontop_network']],
+ ['ส่งเสริมป้องกัน (PP)',['pp_ppfee','pp_healthcheck']],
+ ['นโยบาย / โครงการใหม่',['policy_cancerany','policy_change_right','policy_telemed','dmis_ckd','dmis_moph','dmis_ktp']],
+ ['คุณภาพข้อมูลเบิก',['eclaimdata_uc_op','eclaimdata_uc_ip','eclaimdata_other_op','eclaimdata_other_ip']],
+ ['สิทธิอื่น (ขรก./อปท.)',['other_csmbs','other_lgo']],
+];
+const qs = new URLSearchParams(location.search);
+let state = { h: qs.get('h') && H[qs.get('h')] ? qs.get('h') : '10713' };
+const expanded = new Set();
+const $ = id => document.getElementById(id);
+
+// info tooltip — click ⓘ ข้างหัวข้อเพื่อดู/ซ่อนคำอธิบายภาษาคน
+(function(){
+  const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
+  document.addEventListener('click', e=>{
+    const ic = e.target.closest('.info-ic');
+    if (ic){
+      pop.textContent = ic.dataset.tip;
+      pop.style.display = 'block';
+      const r = ic.getBoundingClientRect();
+      pop.style.left = Math.max(8, Math.min(r.left, innerWidth-328))+'px';
+      pop.style.top = (r.bottom+8)+'px';
+      e.stopPropagation();
+    } else if (!e.target.closest('#info-pop')){ pop.style.display = 'none'; }
+  });
+})();
+function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
+  const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
+  return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
+function metricPref(ms){ const k=Object.keys(ms);
+  return k.find(x=>/AMT|BUDGET/.test(x)&&!/RATE/.test(x))||k.find(x=>/NUM|VISIT|DAY_SUM/.test(x))||k[0]; }
+function unitBase(m){ return /AMT|BUDGET/.test(m)?'บาท':/ADJRW/.test(m)?'AdjRW':'ครั้ง'; }
+function unitOf(vals){ const mx=Math.max(...vals.filter(v=>v!=null&&isFinite(v)).map(Math.abs),0);
+  return mx>=1e6?1e6:mx>=1e4?1e3:1; }
+function unitLbl(div,m){ const b=unitBase(m); return div===1e6?'ล้าน'+b:div===1e3?'พัน'+b:b; }
+function popBracket(info){
+  if (!info.g) return null;
+  const raw = info.g.split(' ').slice(1).join(' ').replace(/(\d+)to(\d+)/,'$1-$2');
+  const m = raw.match(/^([PB])(.+)$/);
+  if (!m) return raw;
+  return m[2] + (m[1]==='P' ? ' คน' : ' เตียง');
+}
+function hospLabel(h){
+  const info = H[h];
+  const name = info.n.replace('โรงพยาบาล','รพ.');
+  const br = popBracket(info);
+  if (info.s && br) return `${name} — ${info.s} ${br}`;
+  if (info.a==='นอก สธ.') return `${name} (นอก สธ.)`;
+  return name;
+}
+function seriesRaw(h, report, metric){ return (AGG.annual[h]?.[report]?.[metric]) || Array(NY).fill(null); }
+
+function cellHTML(vals, i, ipGuard, div){
+  const v = vals[i];
+  const mark = YEARS[i]===PARTIAL ? '*' : '';
+  if (v==null) return '<td><span class="dash">–</span></td>';
+  let deltaHtml = '';
+  if (i>0){
+    const guardedPrev = ipGuard && YEARS[i-1]<2563;
+    if (guardedPrev){
+      deltaHtml = `<span class="delta ip-note" title="ปีฐาน ${YEARS[i-1]} เป็นช่วงเริ่มระบบ IP ไม่น่าเชื่อถือสำหรับดูอัตราโต">⚠</span>`;
+    } else if (vals[i-1]!=null){
+      const prevV = vals[i-1], diff = v-prevV;
+      const pct = prevV!==0 ? (diff/Math.abs(prevV)*100) : null;
+      const dir = diff>0.0001?'up':diff<-0.0001?'dn':'flat';
+      const arrow = dir==='up'?'▲':dir==='dn'?'▼':'▬';
+      deltaHtml = `<span class="delta ${dir}">${arrow}${pct!=null?' '+(diff>=0?'+':'')+fmt(pct,1)+'%':''}</span>`;
+    }
+  }
+  return `<td><div class="cell"><span class="val">${fmt(v/div)}${mark}</span>${deltaHtml}</div></td>`;
+}
+function rowHTML(label, vals, ipGuard, sub, cls){
+  const div = unitOf(vals);
+  const cells = vals.map((_,i)=>cellHTML(vals, i, ipGuard, div)).join('');
+  return `<tr class="${cls}"><td>${label}</td>${cells}</tr>`;
+}
+
+function render(){
+  const me = H[state.h];
+  history.replaceState(null,'',`?h=${state.h}`);
+  $('h-name').textContent = me.n;
+  $('h-chips').innerHTML = [
+    `<span class="chip">${me.p}</span>`,
+    me.s?`<span class="chip">ขนาด ${me.s}${me.g?' · '+popBracket(me):''}</span>`:'',
+    me.a==='นอก สธ.'?`<span class="chip w">นอกสังกัด สธ.</span>`:'',
+    me.b?`<span class="chip b">${me.b} เตียง</span>`:'',
+    me.pop?`<span class="chip b">ปชก.UC ${fmt(me.pop,0)}</span>`:'',
+  ].join('');
+
+  let html = '<thead><tr><th>รายงาน / ตัวชี้วัด</th>' +
+    YEARS.map(y=>`<th>${y}${y===PARTIAL?'*':''}</th>`).join('') + '</tr></thead><tbody>';
+
+  for (const [glabel, keys] of GROUPS){
+    const avail = keys.filter(k=>AGG.reports[k]);
+    if (!avail.length) continue;
+    html += `<tr class="grp"><td colspan="${NY+1}">${glabel}</td></tr>`;
+    for (const k of avail){
+      const rep = AGG.reports[k];
+      const ms = Object.keys(rep.metrics);
+      const primary = metricPref(rep.metrics);
+      const others = ms.filter(m=>m!==primary);
+      const ipGuard = IP_REPORTS.includes(k);
+      const pVals = seriesRaw(state.h, k, primary);
+      const isOpen = expanded.has(k);
+      const toggle = others.length ? `<span class="toggle" data-key="${k}">${isOpen?'▾':'▸'}</span>` : `<span class="toggle"></span>`;
+      const unitTxt = `<span class="unit">(${unitLbl(unitOf(pVals), primary)})</span>`;
+      html += `<tr class="rep" data-key="${k}"><td>${toggle}${rep.label} — ${rep.metrics[primary]} ${unitTxt}</td>` +
+        pVals.map((_,i)=>cellHTML(pVals, i, ipGuard, unitOf(pVals))).join('') + '</tr>';
+      for (const m of others){
+        const vals = seriesRaw(state.h, k, m);
+        const div = unitOf(vals);
+        html += `<tr class="sub${isOpen?' show':''}" data-parent="${k}"><td>${rep.metrics[m]} <span class="unit">(${unitLbl(div,m)})</span></td>` +
+          vals.map((_,i)=>cellHTML(vals, i, ipGuard, div)).join('') + '</tr>';
+      }
+    }
+  }
+  html += '</tbody>';
+  $('mx-table').innerHTML = html;
+
+  $('mx-table').querySelectorAll('tr.rep').forEach(tr=>{
+    tr.addEventListener('click', e=>{
+      if (e.target.closest('a')) return;
+      const key = tr.dataset.key;
+      const subs = $('mx-table').querySelectorAll(`tr.sub[data-parent="${key}"]`);
+      if (!subs.length) return;
+      const nowOpen = !expanded.has(key);
+      if (nowOpen) expanded.add(key); else expanded.delete(key);
+      subs.forEach(s=>s.classList.toggle('show', nowOpen));
+      tr.querySelector('.toggle').textContent = nowOpen ? '▾' : '▸';
+    });
+  });
+}
+
+function renderControls(){
+  $('sel-hosp').innerHTML = PROVS.map(p=>
+    `<optgroup label="${p}">`+Object.keys(H).filter(h=>H[h].p===p)
+      .sort((a,b)=>H[a].n.localeCompare(H[b].n,'th'))
+      .map(h=>`<option value="${h}" ${h===state.h?'selected':''}>${hospLabel(h)}</option>`).join('')+'</optgroup>').join('');
+}
+
+$('sel-hosp').addEventListener('change', e=>{ state.h=e.target.value; render(); });
+$('exp-all').addEventListener('click', ()=>{
+  for (const [,keys] of GROUPS) for (const k of keys) if (AGG.reports[k] && Object.keys(AGG.reports[k].metrics).length>1) expanded.add(k);
+  render();
+});
+$('col-all').addEventListener('click', ()=>{ expanded.clear(); render(); });
+$('theme-toggle').addEventListener('click', ()=>{
+  const next = document.documentElement.dataset.theme==='dark' ? 'light':'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('mishos-theme', next);
+});
+$('gen-date').textContent = 'อัปเดตข้อมูล ' + AGG.generated;
+renderControls();
+render();
+</script>
+</body>
+</html>
