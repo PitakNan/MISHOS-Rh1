@@ -10,6 +10,7 @@
   --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
   --line:#DCE3DE; --grid:#EDF1EE; --accent:#0E8A5F; --accent-deep:#0A6647; --accent-soft:#E4F1EB;
   --blue:#3568C0; --blue-soft:#E8EEF9; --warn:#A9701F; --warn-soft:#F5E9D7; --yellow:#B8860A;
+  --t0:#2a78d6; --t1:#1baf7a; --t2:#eda100; --t3:#008300; --t4:#4a3aa7; --t5:#e34948; --t6:#e87ba4; --t7:#eb6834;
   --mono:ui-monospace,"SF Mono","Consolas",monospace;
   --sans:"Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif;
 }
@@ -17,12 +18,14 @@
   --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
   --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
   --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15; --yellow:#D9A521;
+  --t0:#3987e5; --t1:#199e70; --t2:#c98500; --t3:#008300; --t4:#9085e9; --t5:#e66767; --t6:#d55181; --t7:#d95926;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
     --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
     --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15; --yellow:#D9A521;
+    --t0:#3987e5; --t1:#199e70; --t2:#c98500; --t3:#008300; --t4:#9085e9; --t5:#e66767; --t6:#d55181; --t7:#d95926;
   }
 }
 *{box-sizing:border-box}
@@ -41,7 +44,7 @@ header .sub{font-size:12px;color:var(--ink-2);font-family:var(--mono)}
 .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
 .controls .fld{display:flex;flex-direction:column;gap:3px}
 .controls label{font-size:11.5px;color:var(--ink-2)}
-select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--ink);font-family:var(--sans);max-width:340px}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--ink);font-family:var(--sans);max-width:280px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
 .card h3{margin:0 0 4px;font-size:14.5px;font-weight:700}
 .csub{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin:0 0 10px}
@@ -65,6 +68,9 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
 .fund-head:hover .fname{color:var(--accent)}
 .rank-n{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right;width:24px;flex-shrink:0}
 .fname{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;min-width:0;flex:1}
+.comp-wrap{padding-left:34px;margin-bottom:5px}
+.comp-bar{position:relative;height:8px;border-radius:3px;overflow:hidden;background:var(--grid)}
+.comp-seg{position:absolute;top:0;height:100%;border-left:1px solid var(--card)}
 .yr-block{display:flex;flex-direction:column;gap:4px;padding-left:34px}
 .yr-row{display:flex;align-items:center;gap:8px}
 .yr-tag{font-family:var(--mono);font-size:10px;color:var(--ink-3);width:40px;flex-shrink:0}
@@ -76,9 +82,11 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
 .chk-fld{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);padding-bottom:6px}
 .chk-fld input{width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
 .chk-fld.dim{opacity:.45}
-.legend{display:flex;gap:16px;font-size:11.5px;color:var(--ink-2);margin:2px 0 10px;flex-wrap:wrap}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.sw{width:16px;height:8px;border-radius:2px;display:inline-block;background:var(--accent)}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--ink-2);margin:2px 0 10px;flex-wrap:wrap}
+.legend .grp{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding-right:14px;border-right:1px solid var(--line)}
+.legend .grp:last-child{border-right:none}
+.legend span.it{display:inline-flex;align-items:center;gap:5px}
+.sw{width:14px;height:8px;border-radius:2px;display:inline-block;background:var(--accent)}
 .sw.y2568{background:var(--yellow)}
 .sw.y2569{background:var(--blue)}
 .sw.proj{background:var(--blue);opacity:.4}
@@ -118,28 +126,30 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
       <option value="0">จำนวนคน</option>
       <option value="1">จำนวนครั้ง</option>
     </select></div>
+    <div class="fld"><label>จังหวัด</label><select id="sel-prov"></select></div>
+    <div class="fld"><label>หน่วยบริการ</label><select id="sel-hosp"></select></div>
     <label class="chk-fld" id="chk-fld"><input type="checkbox" id="chk-project"> ประมาณการจนถึงสิ้นปี
-      <span class="info-ic" data-tip="เอาผลงานจริงที่มีอยู่ (~9 เดือนแรกของปีงบ 2569) มาคำนวณเทียบสัดส่วนวันที่ผ่านมาแล้วของปีงบ (72%) เพื่อกะประมาณว่าถ้าจังหวะเท่าเดิมไปจนครบ 12 เดือนจะได้ยอดเท่าไหร่ — เป็นการประมาณการเชิงเส้นอย่างง่าย (ยอดจริง ÷ สัดส่วนวันที่ผ่านมา) ไม่ได้ปรับตามฤดูกาล ใช้ดูแนวโน้มคร่าวๆ เท่านั้น ไม่ใช่ตัวเลขที่แม่นยำ">i</span></label>
+      <span class="info-ic" data-tip="เอาผลงานจริงที่มีอยู่ (~9 เดือนแรกของปีงบ 2569) มาคำนวณเทียบสัดส่วนวันที่ผ่านมาแล้วของปีงบ (72%) เพื่อกะประมาณว่าถ้าจังหวะเท่าเดิมไปจนครบ 12 เดือนจะได้ยอดเท่าไหร่ — เป็นการประมาณการเชิงเส้นอย่างง่าย (ยอดจริง ÷ สัดส่วนวันที่ผ่านมา) ไม่ได้ปรับตามฤดูกาล ใช้ดูแนวโน้มคร่าวๆ เท่านั้น ไม่ใช่ตัวเลขที่แม่นยำ · เลือกจากช่อง 'ปีงบประมาณ' ก็ได้เหมือนกัน (เชื่อมกันอัตโนมัติ)">i</span></label>
   </div>
 
   <div class="stat-strip">
     <div class="card stat"><div class="lbl" id="s-lbl">ยอดรวมปีงบ</div><div class="val" id="s-total">–</div><div class="delta" id="s-delta"></div></div>
-    <div class="card stat"><div class="lbl">หน่วยบริการที่มีข้อมูล</div><div class="val" id="s-nhosp">–</div></div>
+    <div class="card stat"><div class="lbl" id="s-nhosp-lbl">หน่วยบริการที่มีข้อมูล</div><div class="val" id="s-nhosp">–</div></div>
     <div class="card stat"><div class="lbl">กิจกรรมหลัก</div><div class="val" id="s-nmain">–</div></div>
     <div class="card stat"><div class="lbl">กิจกรรมย่อยทั้งหมด</div><div class="val" id="s-nsub">–</div></div>
   </div>
 
   <div class="card">
     <div class="crumb" id="crumb"></div>
-    <h3><span id="chart-title"></span><span class="info-ic" data-tip="แถบยาว = ค่าของปีงบนั้นเทียบกับแถบที่ยาวที่สุดในตารางทั้งหมด (สเกลเดียวกันทุกแถบ เทียบข้ามกันได้จริง) · เลือก 'ทุกปีงบ' เพื่อดู 3 แถบต่อกองทุน (2567 เขียว/2568 เหลือง/2569 น้ำเงิน) · ติ๊ก 'ประมาณการจนถึงสิ้นปี' แถบ 2569 จะมีส่วนต่อขยายจางๆแสดงค่าที่คาดว่าจะได้ถ้าครบปี · คลิกชื่อกิจกรรมหลักเพื่อเจาะดูกิจกรรมย่อยภายใน">i</span></h3>
+    <h3><span id="chart-title"></span><span class="info-ic" data-tip="แถบยาว = ค่าของปีงบนั้นเทียบกับแถบที่ยาวที่สุดในตารางทั้งหมด (สเกลเดียวกันทุกแถบ เทียบข้ามกันได้จริง) · เลือก 'ทุกปีงบ' เพื่อดู 3 แถบต่อกองทุน (2567 เขียว/2568 เหลือง/2569 น้ำเงิน) · ติ๊ก 'ประมาณการจนถึงสิ้นปี' แถบ 2569 จะมีส่วนต่อขยายจางๆแสดงค่าที่คาดว่าจะได้ถ้าครบปี · แถบสีเล็กด้านบนคือสัดส่วนตามประเภทหน่วยบริการของปีที่ใช้จัดอันดับ · คลิกชื่อกิจกรรมหลักเพื่อเจาะดูกิจกรรมย่อยภายใน">i</span></h3>
     <p class="csub" id="chart-sub"></p>
-    <div class="legend hidden" id="rows-legend"></div>
+    <div class="legend" id="rows-legend"></div>
     <div class="rows" id="rows"></div>
   </div>
 
   <footer>
     ข้อมูล ณ 19 มิ.ย. 2569 (ปีงบ 2569 ยังไม่เต็มปี ~9 เดือน — เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้) ·
-    ครอบคลุมเฉพาะหน่วยบริการสังกัด สป.สธ. เขต 1 (ไม่รวม รพศ./รพท./เอกชน/อปท.) ·
+    ครอบคลุมเฉพาะหน่วยบริการสังกัด สป.สธ. เขต 1 (ไม่รวม รพศ./รพท./เอกชน/อปท. นอกสังกัด) ·
     "อื่นๆ (ไม่มีชื่อกิจกรรมหลักกำกับ)" คือบริการคัดกรองปัจจัยเสี่ยงสุขภาพกาย/จิต+HIV self-test ที่มีอยู่จริงในข้อมูลแต่ยังไม่ถูกจัดหมวดกิจกรรมหลักในระบบต้นทาง (ไม่ใช่ข้อผิดพลาดจากการประมวลผล)
   </footer>
 </div>
@@ -149,7 +159,7 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 <script>
 'use strict';
 const D = window.MISHOS_PPFS, YEARS = D.years, PARTIAL = D.partial_fy;
-let state = { fy: YEARS[YEARS.length-1], metric: 2, drill: null, project: false }; // fy: a year string or 'all'; drill = main label or null
+let state = { fy: YEARS[YEARS.length-1], metric: 2, drill: null, project: false, prov: null, hosp: null };
 const $ = id => document.getElementById(id);
 
 // ── fiscal-year progress (for "ประมาณการจนถึงสิ้นปี") ──
@@ -169,6 +179,7 @@ function fyProgress(){ // เศษส่วนของปีงบ PARTIAL ท
 const FY_PROGRESS = fyProgress();
 function projectVal(actual){ return actual==null ? null : actual/FY_PROGRESS; }
 const YEAR_COLOR = {}; YEARS.forEach((y,i) => { YEAR_COLOR[y] = ['var(--accent)','var(--yellow)','var(--blue)'][i] || 'var(--accent)'; });
+const TYPE_VAR = D.types.map((_,i) => `--t${i}`);
 
 (function(){
   const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
@@ -192,33 +203,94 @@ function unitOf(vals){ const mx=Math.max(...vals.filter(v=>v!=null).map(Math.abs
 function unitLbl(div){ const b = state.metric===2?'บาท':state.metric===1?'ครั้ง':'คน';
   return div===1e6?'ล้าน'+b:b; }
 function metricIdx(){ return +state.metric; }
-function valOf(yr, y){ return yr[y] ? yr[y][metricIdx()] : 0; }
+
+// ── scope: which hcodes count, given province/facility filters ──
+function hcodesInScope(){
+  if (state.hosp) return [state.hosp];
+  let list = Object.keys(D.hosp);
+  if (state.prov != null) list = list.filter(h => D.hosp[h].p === state.prov);
+  return list;
+}
+function valOf(hospMap, y, hcodes){
+  let s = 0;
+  for (const h of hcodes){ const yr = hospMap[h]; if (yr && yr[y]) s += yr[y][metricIdx()]; }
+  return s;
+}
+function typeComposition(hospMap, y, hcodes){
+  const totals = D.types.map(()=>0);
+  for (const h of hcodes){
+    const yr = hospMap[h]; if (!yr || !yr[y]) continue;
+    const t = D.hosp[h].t; if (t>=0) totals[t] += yr[y][metricIdx()];
+  }
+  return totals;
+}
 
 function renderFySel(){
-  $('sel-fy').innerHTML = YEARS.map(y=>`<option value="${y}" ${y===state.fy?'selected':''}>ปีงบ ${y}${y===PARTIAL?' (~9 เดือน)':''}</option>`).join('')
-    + `<option value="all" ${state.fy==='all'?'selected':''}>ทุกปีงบ (เปรียบเทียบเป็นเส้น)</option>`;
+  const cur = state.fy==='all' ? 'all' : (state.fy===PARTIAL && state.project) ? 'proj' : state.fy;
+  const opts = YEARS.map(y => {
+    if (y===PARTIAL) return [
+      [y, `ปีงบ ${y} (~9 เดือน)`],
+      ['proj', `ปีงบ ${y} (ประมาณการเต็มปี)`],
+    ];
+    return [[y, `ปีงบ ${y}`]];
+  }).flat();
+  opts.push(['all', 'ทุกปีงบ (เปรียบเทียบ)']);
+  $('sel-fy').innerHTML = opts.map(([v,l]) => `<option value="${v}" ${v===cur?'selected':''}>${l}</option>`).join('');
+}
+function applyFySelValue(v){
+  if (v === 'proj'){ state.fy = PARTIAL; state.project = true; }
+  else if (v === 'all'){ state.fy = 'all'; }
+  else { state.fy = v; if (v === PARTIAL) state.project = false; }
+}
+function renderProvSel(){
+  const counts = D.provs.map((_,i) => Object.values(D.hosp).filter(h=>h.p===i).length);
+  $('sel-prov').innerHTML = `<option value="" ${state.prov==null?'selected':''}>ทั้งหมด (${Object.keys(D.hosp).length} แห่ง)</option>` +
+    D.provs.map((p,i) => `<option value="${i}" ${state.prov===i?'selected':''}>${p} (${counts[i]})</option>`).join('');
+}
+function renderHospSel(){
+  const entries = Object.entries(D.hosp);
+  const filtered = state.prov!=null ? entries.filter(([,h])=>h.p===state.prov) : entries;
+  const sorted = filtered.sort((a,b)=>a[1].n.localeCompare(b[1].n,'th'));
+  let html = `<option value="" ${!state.hosp?'selected':''}>ทั้งหมด (${sorted.length} แห่ง${state.prov!=null?'ในจังหวัดนี้':''})</option>`;
+  if (state.prov==null){
+    html += D.provs.map((p,pi) => {
+      const grp = sorted.filter(([,h])=>h.p===pi);
+      if (!grp.length) return '';
+      return `<optgroup label="${p}">` + grp.map(([hc,h])=>`<option value="${hc}" ${state.hosp===hc?'selected':''}>${h.n}</option>`).join('') + `</optgroup>`;
+    }).join('');
+  } else {
+    html += sorted.map(([hc,h])=>`<option value="${hc}" ${state.hosp===hc?'selected':''}>${h.n}</option>`).join('');
+  }
+  $('sel-hosp').innerHTML = html;
 }
 function projectRelevant(){ return state.fy === PARTIAL || state.fy === 'all'; }
 function updateProjectAvailability(){
   const on = projectRelevant();
   $('chk-fld').classList.toggle('dim', !on);
   $('chk-project').disabled = !on;
+  $('chk-project').checked = state.project;
+}
+
+function scopeLabel(){
+  if (state.hosp) return D.hosp[state.hosp].n;
+  if (state.prov!=null) return D.provs[state.prov];
+  return 'ทั้งเขต 1';
 }
 
 function renderKpis(){
+  const scopeH = hcodesInScope();
   const headlineY = state.fy === 'all' ? PARTIAL : state.fy;
   const prevY = YEARS[YEARS.indexOf(headlineY)-1];
   const projecting = state.project && headlineY === PARTIAL;
-  let prevTotal = 0, curTotal = 0;
+  let curTotal = 0, prevTotal = 0;
   for (const m of D.mains){
-    const cur = m.yr[headlineY];
-    if (cur){ curTotal += cur[metricIdx()]; }
-    if (prevY && m.yr[prevY]) prevTotal += m.yr[prevY][metricIdx()];
+    curTotal += valOf(m.hosp, headlineY, scopeH);
+    if (prevY) prevTotal += valOf(m.hosp, prevY, scopeH);
   }
   if (projecting) curTotal = projectVal(curTotal);
   const div = unitOf([curTotal]), ulab = unitLbl(div);
   const isPartial = headlineY === PARTIAL;
-  $('s-lbl').textContent = `ยอดรวมปีงบ ${headlineY}${projecting?' (ประมาณการเต็มปี)':isPartial?' (~9 เดือน)':''}`;
+  $('s-lbl').textContent = `ยอดรวมปีงบ ${headlineY}${projecting?' (ประมาณการเต็มปี)':isPartial?' (~9 เดือน)':''} · ${scopeLabel()}`;
   $('s-total').textContent = fmt(curTotal/div) + (projecting?'≈':isPartial?'*':'') + ' ' + ulab;
   $('s-total').style.color = projecting ? 'var(--warn)' : '';
   if (prevY && prevTotal){
@@ -228,10 +300,11 @@ function renderKpis(){
   } else {
     $('s-delta').textContent = '';
   }
-  $('s-nhosp').textContent = fmt(D.meta.n_hosp,0);
+  $('s-nhosp-lbl').textContent = state.hosp||state.prov!=null ? 'หน่วยบริการในขอบเขตที่เลือก' : 'หน่วยบริการที่มีข้อมูล';
+  $('s-nhosp').textContent = fmt(scopeH.length,0);
   $('s-nmain').textContent = fmt(D.meta.n_main,0);
   $('s-nsub').textContent = fmt(D.meta.n_sub,0);
-  $('asof-sub').textContent = `ข้อมูล ณ ${D.meta.as_of} · ${D.meta.n_hosp} หน่วยบริการ`;
+  $('asof-sub').textContent = `ข้อมูล ณ ${D.meta.as_of} · ${D.meta.n_hosp} หน่วยบริการทั้งเขต`;
 }
 
 function yearRowHTML(y, actual, div, ulab, globalMax, projecting){
@@ -248,11 +321,23 @@ function yearRowHTML(y, actual, div, ulab, globalMax, projecting){
     <span class="yr-val">${valTxt}</span>
   </div>`;
 }
+function compositionBarHTML(totals){
+  const sum = totals.reduce((a,b)=>a+b,0);
+  if (sum<=0) return '';
+  let segs = '', left = 0;
+  totals.forEach((v,i) => {
+    if (v<=0) return;
+    const pct = v/sum*100;
+    segs += `<span class="comp-seg" style="left:${left}%;width:${pct}%;background:var(${TYPE_VAR[i]})" title="${D.types[i]}: ${pct.toFixed(1)}%"></span>`;
+    left += pct;
+  });
+  return `<div class="comp-wrap"><div class="comp-bar">${segs}</div></div>`;
+}
 function renderLegend(showYears, projecting){
-  const items = showYears.map(y => `<span><span class="sw" style="background:${YEAR_COLOR[y]}"></span>ปีงบ ${y}${y===PARTIAL?' (~9 เดือน ไม่เต็มปี)':''}</span>`);
-  if (projecting) items.push(`<span><span class="sw proj"></span>ประมาณการจนถึงสิ้นปี (เชิงเส้น ไม่ใช่ตัวเลขแม่นยำ)</span>`);
-  $('rows-legend').innerHTML = items.join('');
-  $('rows-legend').classList.toggle('hidden', showYears.length<2 && !projecting);
+  const yrItems = showYears.map(y => `<span class="it"><span class="sw" style="background:${YEAR_COLOR[y]}"></span>ปีงบ ${y}${y===PARTIAL?' (~9 เดือน)':''}</span>`);
+  if (projecting) yrItems.push(`<span class="it"><span class="sw proj"></span>ประมาณการเต็มปี</span>`);
+  const typeItems = D.types.map((t,i) => `<span class="it"><span class="sw" style="background:var(${TYPE_VAR[i]})"></span>${t}</span>`);
+  $('rows-legend').innerHTML = `<div class="grp">${yrItems.join('')}</div><div class="grp">${typeItems.join('')}</div>`;
 }
 
 function renderRows(){
@@ -261,21 +346,22 @@ function renderRows(){
   const isPartial = !allYears && state.fy === PARTIAL;
   const projecting = state.project && projectRelevant();
   const showYears = allYears ? YEARS : [state.fy];
+  const scopeH = hcodesInScope();
   let list, title, sub, hasFallback = false;
   if (!state.drill){
-    list = D.mains.map(m => ({label: m.label, yr: m.yr, key: m.label}));
+    list = D.mains.map(m => ({label: m.label, hosp: m.hosp, key: m.label}));
     title = 'กองทุนหลัก (กิจกรรมหลัก) — เรียงมากไปน้อย';
     sub = allYears
-      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`
-      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`;
+      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${scopeLabel()} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`
+      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${scopeLabel()} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`;
     $('crumb').innerHTML = `<b>ทั้งหมด</b>`;
   } else {
     const m = D.mains.find(x => x.label === state.drill);
-    list = m.subs.map(s => ({label: s.label, yr: s.yr, key: s.label}));
+    list = m.subs.map(s => ({label: s.label, hosp: s.hosp, key: s.label}));
     title = 'กิจกรรมย่อย — เรียงมากไปน้อย';
     sub = allYears
-      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`
-      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`;
+      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${scopeLabel()} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`
+      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${scopeLabel()} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`;
     hasFallback = m.label.startsWith('อื่นๆ');
     $('crumb').innerHTML = `<a id="crumb-back">ทั้งหมด (${D.mains.length} กิจกรรมหลัก)</a><span class="sep">›</span><b>${m.label}</b>`;
   }
@@ -287,32 +373,35 @@ function renderRows(){
   const rows = $('rows');
   const clickable = !state.drill;
 
-  // จัดอันดับตามปีล่าสุดที่กำลังดู (ประมาณการถ้าติ๊กไว้) — sortYear คือ 2569 เสมอเมื่อดูทุกปีงบ
   const sortYear = allYears ? PARTIAL : state.fy;
   list.forEach(o => {
-    const actual = valOf(o.yr, sortYear);
+    const actual = valOf(o.hosp, sortYear, scopeH);
     o._sort = (projecting && sortYear===PARTIAL) ? projectVal(actual) : actual;
   });
   list.sort((a,b) => (b._sort||0) - (a._sort||0));
 
   const allVals = [];
   list.forEach(o => showYears.forEach(y => {
-    const v = valOf(o.yr, y);
+    const v = valOf(o.hosp, y, scopeH);
     allVals.push(v);
     if (projecting && y===PARTIAL) allVals.push(projectVal(v));
   }));
   const div = unitOf(allVals), ulab = unitLbl(div);
   const globalMax = Math.max(...allVals.filter(v=>v!=null), 0);
 
-  if (!list.length || globalMax<=0){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของปีงบนี้</div>`; return; }
-  rows.innerHTML = list.map((o,i) => `
+  if (!list.length || globalMax<=0){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของขอบเขต/ปีงบที่เลือก</div>`; return; }
+  rows.innerHTML = list.map((o,i) => {
+    const comp = typeComposition(o.hosp, sortYear, scopeH);
+    return `
     <div class="fund-block">
       <button class="fund-head" data-key="${encodeURIComponent(o.key)}" ${clickable?'':'style="cursor:default"'}>
         <span class="rank-n">${i+1}</span>
         <span class="fname" title="${o.label.replace(/"/g,'&quot;')}">${o.label}</span>
       </button>
-      <div class="yr-block">${showYears.map(y => yearRowHTML(y, valOf(o.yr,y), div, ulab, globalMax, projecting)).join('')}</div>
-    </div>`).join('');
+      ${compositionBarHTML(comp)}
+      <div class="yr-block">${showYears.map(y => yearRowHTML(y, valOf(o.hosp,y,scopeH), div, ulab, globalMax, projecting)).join('')}</div>
+    </div>`;
+  }).join('');
 
   if (clickable){
     rows.querySelectorAll('.fund-head').forEach(el => el.addEventListener('click', () => {
@@ -333,15 +422,27 @@ function renderRows(){
 
 function renderAll(){ renderKpis(); renderRows(); }
 
-$('sel-fy').addEventListener('change', e=>{ state.fy=e.target.value; renderAll(); });
+$('sel-fy').addEventListener('change', e=>{ applyFySelValue(e.target.value); renderFySel(); renderAll(); });
 $('sel-metric').addEventListener('change', e=>{ state.metric=+e.target.value; renderAll(); });
-$('chk-project').addEventListener('change', e=>{ state.project=e.target.checked; renderAll(); });
+$('chk-project').addEventListener('change', e=>{ state.project=e.target.checked; renderFySel(); renderAll(); });
+$('sel-prov').addEventListener('change', e=>{
+  state.prov = e.target.value===''?null:+e.target.value;
+  state.hosp = null;
+  renderHospSel(); renderAll();
+});
+$('sel-hosp').addEventListener('change', e=>{
+  state.hosp = e.target.value || null;
+  if (state.hosp) state.prov = D.hosp[state.hosp].p;
+  renderProvSel(); renderAll();
+});
 $('theme-toggle').addEventListener('click', ()=>{
   const next = document.documentElement.dataset.theme==='dark' ? 'light':'dark';
   document.documentElement.dataset.theme = next;
   localStorage.setItem('mishos-theme', next);
 });
 renderFySel();
+renderProvSel();
+renderHospSel();
 renderAll();
 </script>
 </body>
