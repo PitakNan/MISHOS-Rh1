@@ -9,20 +9,20 @@
 :root{
   --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
   --line:#DCE3DE; --grid:#EDF1EE; --accent:#0E8A5F; --accent-deep:#0A6647; --accent-soft:#E4F1EB;
-  --blue:#3568C0; --blue-soft:#E8EEF9; --warn:#A9701F; --warn-soft:#F5E9D7;
+  --blue:#3568C0; --blue-soft:#E8EEF9; --warn:#A9701F; --warn-soft:#F5E9D7; --yellow:#B8860A;
   --mono:ui-monospace,"SF Mono","Consolas",monospace;
   --sans:"Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif;
 }
 :root[data-theme="dark"]{
   --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
   --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
-  --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+  --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15; --yellow:#D9A521;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
     --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
-    --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+    --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15; --yellow:#D9A521;
   }
 }
 *{box-sizing:border-box}
@@ -58,30 +58,30 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
 .stat .val{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
 .stat .delta{font-size:12px;font-weight:600;margin-top:2px}
 .rows{display:flex;flex-direction:column;gap:0}
-.row{display:grid;grid-template-columns:34px 1fr 150px;gap:12px;align-items:center;padding:8px 4px;
-  border-bottom:1px solid var(--grid);cursor:pointer;background:none;border-left:none;border-right:none;border-top:none;
-  width:100%;text-align:left;font-family:inherit;color:inherit}
-.row:hover{background:var(--accent-soft)}
-.row:last-child{border-bottom:none}
-.rank-n{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right}
-.rowmid{min-width:0}
-.fname{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-.barwrap{display:block;position:relative;height:22px;background:var(--grid);border-radius:4px;overflow:visible;margin-top:4px}
-.barfill{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:var(--accent)}
-.barfill.proj{background:var(--warn-soft);border:1.5px dashed var(--warn)}
-.linewrap{display:block;position:relative;height:36px;margin-top:2px}
-.linewrap svg{width:100%;height:100%;display:block}
-.rowval{font-family:var(--mono);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
-.rowval .d{font-size:10.5px;color:var(--ink-3);display:block;font-family:var(--sans)}
-.rowval .proj-tag{font-size:10.5px;color:var(--warn);display:block;font-family:var(--sans);font-weight:600}
+.fund-block{padding:9px 4px;border-bottom:1px solid var(--grid)}
+.fund-block:last-child{border-bottom:none}
+.fund-head{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;
+  border:none;padding:0 0 6px;cursor:pointer;font-family:inherit;color:inherit}
+.fund-head:hover .fname{color:var(--accent)}
+.rank-n{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right;width:24px;flex-shrink:0}
+.fname{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;min-width:0;flex:1}
+.yr-block{display:flex;flex-direction:column;gap:4px;padding-left:34px}
+.yr-row{display:flex;align-items:center;gap:8px}
+.yr-tag{font-family:var(--mono);font-size:10px;color:var(--ink-3);width:40px;flex-shrink:0}
+.yr-bar-wrap{position:relative;height:14px;background:var(--grid);border-radius:3px;flex:1;overflow:visible}
+.yr-bar-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px}
+.yr-bar-fill.proj-ext{opacity:.4}
+.yr-val{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);white-space:nowrap;flex-shrink:0;min-width:150px;text-align:right}
+.yr-val .proj-tag{color:var(--warn);font-weight:600;margin-left:4px;font-family:var(--sans);font-size:10px}
 .chk-fld{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);padding-bottom:6px}
 .chk-fld input{width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
 .chk-fld.dim{opacity:.45}
 .legend{display:flex;gap:16px;font-size:11.5px;color:var(--ink-2);margin:2px 0 10px;flex-wrap:wrap}
 .legend span{display:inline-flex;align-items:center;gap:6px}
-.sw{width:16px;height:2px;border-radius:2px;display:inline-block;background:var(--accent)}
-.sw.dash{background:repeating-linear-gradient(90deg,var(--accent) 0 5px,transparent 5px 9px)}
-.sw.proj{background:repeating-linear-gradient(90deg,var(--warn) 0 2px,transparent 2px 5px)}
+.sw{width:16px;height:8px;border-radius:2px;display:inline-block;background:var(--accent)}
+.sw.y2568{background:var(--yellow)}
+.sw.y2569{background:var(--blue)}
+.sw.proj{background:var(--blue);opacity:.4}
 .crumb{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px}
 .crumb a{color:var(--accent);text-decoration:none;cursor:pointer}
 .crumb a:hover{text-decoration:underline}
@@ -131,13 +131,9 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 
   <div class="card">
     <div class="crumb" id="crumb"></div>
-    <h3><span id="chart-title"></span><span class="info-ic" data-tip="โหมดปีเดียว: แถบยาว = ค่าของกองทุนนั้นเทียบกับกองทุนที่มากที่สุดในรายการ (100%) · โหมด 'ทุกปีงบ': เส้นเล็กแสดงแนวโน้ม 3 ปีของกองทุนนั้น (67→68→69) · ทั้งสองโหมดเรียงจากมากไปน้อยตามปีล่าสุด · คลิกแถวกิจกรรมหลักเพื่อเจาะดูกิจกรรมย่อยภายใน">i</span></h3>
+    <h3><span id="chart-title"></span><span class="info-ic" data-tip="แถบยาว = ค่าของปีงบนั้นเทียบกับแถบที่ยาวที่สุดในตารางทั้งหมด (สเกลเดียวกันทุกแถบ เทียบข้ามกันได้จริง) · เลือก 'ทุกปีงบ' เพื่อดู 3 แถบต่อกองทุน (2567 เขียว/2568 เหลือง/2569 น้ำเงิน) · ติ๊ก 'ประมาณการจนถึงสิ้นปี' แถบ 2569 จะมีส่วนต่อขยายจางๆแสดงค่าที่คาดว่าจะได้ถ้าครบปี · คลิกชื่อกิจกรรมหลักเพื่อเจาะดูกิจกรรมย่อยภายใน">i</span></h3>
     <p class="csub" id="chart-sub"></p>
-    <div class="legend hidden" id="rows-legend">
-      <span><span class="sw"></span>ค่าจริง (ปีเต็ม)</span>
-      <span><span class="sw dash"></span>ค่าจริง ปีงบ 2569 (~9 เดือน ไม่เต็มปี)</span>
-      <span><span class="sw proj"></span>ประมาณการจนถึงสิ้นปี (เชิงเส้น ไม่ใช่ตัวเลขแม่นยำ)</span>
-    </div>
+    <div class="legend hidden" id="rows-legend"></div>
     <div class="rows" id="rows"></div>
   </div>
 
@@ -172,6 +168,7 @@ function fyProgress(){ // เศษส่วนของปีงบ PARTIAL ท
 }
 const FY_PROGRESS = fyProgress();
 function projectVal(actual){ return actual==null ? null : actual/FY_PROGRESS; }
+const YEAR_COLOR = {}; YEARS.forEach((y,i) => { YEAR_COLOR[y] = ['var(--accent)','var(--yellow)','var(--blue)'][i] || 'var(--accent)'; });
 
 (function(){
   const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
@@ -237,45 +234,25 @@ function renderKpis(){
   $('asof-sub').textContent = `ข้อมูล ณ ${D.meta.as_of} · ${D.meta.n_hosp} หน่วยบริการ`;
 }
 
-function sparkline(svg, pts, opt={}){
-  // pts: [{v, lbl, kind}] kind: 'full' | 'partial' | 'proj' (in chronological order)
-  const W=opt.w||260, H=opt.h||36, padL=6,padR=6,padT=5,padB=13;
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  const nums = pts.map(p=>p.v).filter(v=>v!=null);
-  if (!nums.length){ svg.innerHTML=''; return; }
-  const max = Math.max(...nums,1e-9), min = Math.min(0,...nums);
-  const n = pts.length, iw=W-padL-padR, ih=H-padT-padB;
-  const X = i => n>1 ? padL+iw*i/(n-1) : padL+iw/2;
-  const Y = v => padT+ih-ih*(v-min)/((max-min)||1);
-  let s='';
-  for (let i=1;i<n;i++){
-    const a=pts[i-1], b=pts[i];
-    if (a.v==null||b.v==null) continue;
-    const proj = b.kind==='proj', partial = b.kind==='partial';
-    const color = proj ? 'var(--warn)' : 'var(--accent)';
-    const dash = proj ? 'stroke-dasharray="2 3"' : partial ? 'stroke-dasharray="5 4"' : '';
-    s += `<line x1="${X(i-1)}" y1="${Y(a.v)}" x2="${X(i)}" y2="${Y(b.v)}" stroke="${color}" stroke-width="2" ${dash}/>`;
-  }
-  pts.forEach((p,i)=>{
-    if (p.v==null) return;
-    const hollow = p.kind!=='full';
-    const color = p.kind==='proj' ? 'var(--warn)' : 'var(--accent)';
-    s += `<circle cx="${X(i)}" cy="${Y(p.v)}" r="3" fill="${hollow?'var(--card)':color}" stroke="${color}" stroke-width="${hollow?2:0}"/>`;
-    s += `<text x="${X(i)}" y="${H-2}" text-anchor="middle" font-size="8" fill="var(--ink-3)">${p.lbl}</text>`;
-  });
-  svg.innerHTML = s;
+function yearRowHTML(y, actual, div, ulab, globalMax, projecting){
+  const isP = y === PARTIAL;
+  const proj = (isP && projecting) ? projectVal(actual) : null;
+  const pctA = globalMax>0 ? (actual||0)/globalMax*100 : 0;
+  const pctP = proj!=null && globalMax>0 ? proj/globalMax*100 : null;
+  const color = YEAR_COLOR[y];
+  const ext = pctP!=null ? `<span class="yr-bar-fill proj-ext" style="left:${pctA}%;width:${Math.max(0,pctP-pctA)}%;background:${color}"></span>` : '';
+  const valTxt = `${fmt((actual||0)/div)}${isP&&!proj?'*':''} ${ulab}` + (proj!=null?`<span class="proj-tag">≈${fmt(proj/div)} ${ulab} ถ้าครบปี</span>`:'');
+  return `<div class="yr-row">
+    <span class="yr-tag">${y}${isP?'*':''}</span>
+    <span class="yr-bar-wrap"><span class="yr-bar-fill" style="width:${pctA}%;background:${color}"></span>${ext}</span>
+    <span class="yr-val">${valTxt}</span>
+  </div>`;
 }
-function seriesFor(yr){ // [{v,lbl,kind}] across all years for one fund, honoring state.project
-  const pts = YEARS.map(y => ({ v: valOf(yr,y), lbl: y.slice(2), kind: y===PARTIAL?'partial':'full' }));
-  if (state.project){
-    const last = pts[pts.length-1];
-    pts.push({ v: projectVal(last.v), lbl: '≈'+PARTIAL.slice(2), kind: 'proj' });
-  }
-  return pts;
-}
-function effVal(yr){ // ค่าล่าสุดที่ใช้จัดอันดับ/แสดง — ประมาณการถ้าติ๊กไว้ ไม่งั้นค่าจริงปีล่าสุด
-  const last = valOf(yr, PARTIAL);
-  return state.project ? projectVal(last) : last;
+function renderLegend(showYears, projecting){
+  const items = showYears.map(y => `<span><span class="sw" style="background:${YEAR_COLOR[y]}"></span>ปีงบ ${y}${y===PARTIAL?' (~9 เดือน ไม่เต็มปี)':''}</span>`);
+  if (projecting) items.push(`<span><span class="sw proj"></span>ประมาณการจนถึงสิ้นปี (เชิงเส้น ไม่ใช่ตัวเลขแม่นยำ)</span>`);
+  $('rows-legend').innerHTML = items.join('');
+  $('rows-legend').classList.toggle('hidden', showYears.length<2 && !projecting);
 }
 
 function renderRows(){
@@ -283,75 +260,62 @@ function renderRows(){
   const allYears = state.fy === 'all';
   const isPartial = !allYears && state.fy === PARTIAL;
   const projecting = state.project && projectRelevant();
+  const showYears = allYears ? YEARS : [state.fy];
   let list, title, sub, hasFallback = false;
   if (!state.drill){
     list = D.mains.map(m => ({label: m.label, yr: m.yr, key: m.label}));
     title = 'กองทุนหลัก (กิจกรรมหลัก) — เรียงมากไปน้อย';
     sub = allYears
-      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (จุดสุดท้าย ≈ ประมาณการเต็มปี 2569)':''} · ${list.length} กิจกรรมหลัก · แต่ละเส้นสเกลตามช่วงของตัวเอง ดู "รูปทรง" แนวโน้ม ไม่ใช่เปรียบเทียบความสูงข้ามแถว · คลิกแถวเพื่อดูกิจกรรมย่อย`
-      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — แสดงค่าประมาณการเต็มปี':''} · ${list.length} กิจกรรมหลัก · คลิกแถวเพื่อดูกิจกรรมย่อย`;
+      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`
+      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`;
     $('crumb').innerHTML = `<b>ทั้งหมด</b>`;
   } else {
     const m = D.mains.find(x => x.label === state.drill);
     list = m.subs.map(s => ({label: s.label, yr: s.yr, key: s.label}));
     title = 'กิจกรรมย่อย — เรียงมากไปน้อย';
     sub = allYears
-      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (จุดสุดท้าย ≈ ประมาณการเต็มปี 2569)':''} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}" · แต่ละเส้นสเกลตามช่วงของตัวเอง`
-      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — แสดงค่าประมาณการเต็มปี':''} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`;
+      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`
+      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`;
     hasFallback = m.label.startsWith('อื่นๆ');
     $('crumb').innerHTML = `<a id="crumb-back">ทั้งหมด (${D.mains.length} กิจกรรมหลัก)</a><span class="sep">›</span><b>${m.label}</b>`;
   }
 
   $('chart-title').textContent = title;
   $('chart-sub').textContent = sub;
-  $('rows-legend').classList.toggle('hidden', !allYears);
+  renderLegend(showYears, projecting);
 
   const rows = $('rows');
   const clickable = !state.drill;
 
-  if (allYears){
-    list.forEach(o => o._eff = effVal(o.yr));
-    list.sort((a,b) => (b._eff||0) - (a._eff||0));
-    const div = unitOf(list.map(o=>o._eff)), ulab = unitLbl(div);
-    if (!list.length){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูล</div>`; return; }
-    rows.innerHTML = list.map((o,i) => {
-      const pts = seriesFor(o.yr);
-      const last = valOf(o.yr, YEARS[YEARS.indexOf(PARTIAL)-1]);
-      const yoy = (last && o._eff!=null) ? (o._eff-last)/last*100 : null;
-      return `<button class="row" data-key="${encodeURIComponent(o.key)}" data-pts='${JSON.stringify(pts).replace(/'/g,'&#39;')}' ${clickable?'':'style="cursor:default"'}>
+  // จัดอันดับตามปีล่าสุดที่กำลังดู (ประมาณการถ้าติ๊กไว้) — sortYear คือ 2569 เสมอเมื่อดูทุกปีงบ
+  const sortYear = allYears ? PARTIAL : state.fy;
+  list.forEach(o => {
+    const actual = valOf(o.yr, sortYear);
+    o._sort = (projecting && sortYear===PARTIAL) ? projectVal(actual) : actual;
+  });
+  list.sort((a,b) => (b._sort||0) - (a._sort||0));
+
+  const allVals = [];
+  list.forEach(o => showYears.forEach(y => {
+    const v = valOf(o.yr, y);
+    allVals.push(v);
+    if (projecting && y===PARTIAL) allVals.push(projectVal(v));
+  }));
+  const div = unitOf(allVals), ulab = unitLbl(div);
+  const globalMax = Math.max(...allVals.filter(v=>v!=null), 0);
+
+  if (!list.length || globalMax<=0){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของปีงบนี้</div>`; return; }
+  rows.innerHTML = list.map((o,i) => `
+    <div class="fund-block">
+      <button class="fund-head" data-key="${encodeURIComponent(o.key)}" ${clickable?'':'style="cursor:default"'}>
         <span class="rank-n">${i+1}</span>
-        <span class="rowmid">
-          <span class="fname" title="${o.label.replace(/"/g,'&quot;')}">${o.label}</span>
-          <span class="linewrap"><svg></svg></span>
-        </span>
-        <span class="rowval">${o._eff!=null?fmt(o._eff/div):'–'} ${ulab}${state.project?'<span class="proj-tag">≈ ประมาณการ</span>':''}${yoy!=null?`<span class="d">${yoy>=0?'+':''}${fmt(yoy,0)}% vs 2568</span>`:''}</span>
-      </button>`;
-    }).join('');
-    rows.querySelectorAll('.row').forEach(el => {
-      sparkline(el.querySelector('svg'), JSON.parse(el.dataset.pts));
-    });
-  } else {
-    list.forEach(o => o._v = valOf(o.yr, state.fy));
-    if (projecting) list.forEach(o => o._v = projectVal(o._v));
-    list.sort((a,b) => (b._v||0) - (a._v||0));
-    const mx = Math.max(...list.map(o=>o._v||0), 0);
-    const div = unitOf(list.map(o=>o._v)), ulab = unitLbl(div);
-    if (!list.length || mx<=0){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของปีงบนี้</div>`; return; }
-    rows.innerHTML = list.map((o,i) => {
-      const pct = mx>0 ? (o._v||0)/mx*100 : 0;
-      return `<button class="row" data-key="${encodeURIComponent(o.key)}" ${clickable?'':'style="cursor:default"'}>
-        <span class="rank-n">${i+1}</span>
-        <span class="rowmid">
-          <span class="fname" title="${o.label.replace(/"/g,'&quot;')}">${o.label}</span>
-          <span class="barwrap"><span class="barfill${projecting?' proj':''}" style="width:${pct}%"></span></span>
-        </span>
-        <span class="rowval">${fmt((o._v||0)/div)}${projecting?'≈':isPartial?'*':''} ${ulab}${projecting?'<span class="proj-tag">≈ ประมาณการ</span>':''}</span>
-      </button>`;
-    }).join('');
-  }
+        <span class="fname" title="${o.label.replace(/"/g,'&quot;')}">${o.label}</span>
+      </button>
+      <div class="yr-block">${showYears.map(y => yearRowHTML(y, valOf(o.yr,y), div, ulab, globalMax, projecting)).join('')}</div>
+    </div>`).join('');
 
   if (clickable){
-    rows.querySelectorAll('.row').forEach(el => el.addEventListener('click', () => {
+    rows.querySelectorAll('.fund-head').forEach(el => el.addEventListener('click', () => {
       state.drill = decodeURIComponent(el.dataset.key);
       renderRows();
     }));
