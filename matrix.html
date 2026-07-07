@@ -84,6 +84,7 @@ tr.sub.show{display:table-row}
 .unit{color:var(--ink-3);font-size:10.5px;font-family:var(--mono)}
 .cell{display:flex;flex-direction:column;align-items:flex-end;gap:1px;line-height:1.3}
 .cell .val{font-weight:600}
+.cell .val .unit{font-weight:400;font-size:9.5px;color:var(--ink-3)}
 .cell .delta{font-size:9.5px;font-family:var(--sans)}
 .delta.up{color:var(--accent)}
 .delta.dn{color:var(--warn)}
@@ -186,9 +187,8 @@ function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(
 function metricPref(ms){ const k=Object.keys(ms);
   return k.find(x=>/AMT|BUDGET/.test(x)&&!/RATE/.test(x))||k.find(x=>/NUM|VISIT|DAY_SUM/.test(x))||k[0]; }
 function unitBase(m){ return /AMT|BUDGET/.test(m)?'บาท':/ADJRW/.test(m)?'AdjRW':'ครั้ง'; }
-function unitOf(vals){ const mx=Math.max(...vals.filter(v=>v!=null&&isFinite(v)).map(Math.abs),0);
-  return mx>=1e6?1e6:mx>=1e4?1e3:1; }
-function unitLbl(div,m){ const b=unitBase(m); return div===1e6?'ล้าน'+b:div===1e3?'พัน'+b:b; }
+function cellUnit(v){ return Math.abs(v)>=1e6 ? 1e6 : 1; } // ต่อเซลล์: ถึงล้านค่อยย่อ ต่ำกว่านั้น (รวมหลักแสน) แสดงจำนวนเต็มตรงๆ
+function unitLbl(div,m){ const b=unitBase(m); return div===1e6?'ล้าน'+b:b; }
 function popBracket(info){
   if (!info.g) return null;
   const raw = info.g.split(' ').slice(1).join(' ').replace(/(\d+)to(\d+)/,'$1-$2');
@@ -206,10 +206,11 @@ function hospLabel(h){
 }
 function seriesRaw(h, report, metric){ return (AGG.annual[h]?.[report]?.[metric]) || Array(NY).fill(null); }
 
-function cellHTML(vals, i, ipGuard, div){
+function cellHTML(vals, i, ipGuard, metricKey){
   const v = vals[i];
   const mark = YEARS[i]===PARTIAL ? '*' : '';
   if (v==null) return '<td><span class="dash">–</span></td>';
+  const div = cellUnit(v), ulabel = unitLbl(div, metricKey);
   let deltaHtml = '';
   if (i>0){
     const guardedPrev = ipGuard && YEARS[i-1]<2563;
@@ -223,12 +224,7 @@ function cellHTML(vals, i, ipGuard, div){
       deltaHtml = `<span class="delta ${dir}">${arrow}${pct!=null?' '+(diff>=0?'+':'')+fmt(pct,1)+'%':''}</span>`;
     }
   }
-  return `<td><div class="cell"><span class="val">${fmt(v/div)}${mark}</span>${deltaHtml}</div></td>`;
-}
-function rowHTML(label, vals, ipGuard, sub, cls){
-  const div = unitOf(vals);
-  const cells = vals.map((_,i)=>cellHTML(vals, i, ipGuard, div)).join('');
-  return `<tr class="${cls}"><td>${label}</td>${cells}</tr>`;
+  return `<td><div class="cell"><span class="val">${fmt(v/div)}${mark} <span class="unit">${ulabel}</span></span>${deltaHtml}</div></td>`;
 }
 
 function render(){
@@ -259,14 +255,12 @@ function render(){
       const pVals = seriesRaw(state.h, k, primary);
       const isOpen = expanded.has(k);
       const toggle = others.length ? `<span class="toggle" data-key="${k}">${isOpen?'▾':'▸'}</span>` : `<span class="toggle"></span>`;
-      const unitTxt = `<span class="unit">(${unitLbl(unitOf(pVals), primary)})</span>`;
-      html += `<tr class="rep" data-key="${k}"><td>${toggle}${rep.label} — ${rep.metrics[primary]} ${unitTxt}</td>` +
-        pVals.map((_,i)=>cellHTML(pVals, i, ipGuard, unitOf(pVals))).join('') + '</tr>';
+      html += `<tr class="rep" data-key="${k}"><td>${toggle}${rep.label} — ${rep.metrics[primary]}</td>` +
+        pVals.map((_,i)=>cellHTML(pVals, i, ipGuard, primary)).join('') + '</tr>';
       for (const m of others){
         const vals = seriesRaw(state.h, k, m);
-        const div = unitOf(vals);
-        html += `<tr class="sub${isOpen?' show':''}" data-parent="${k}"><td>${rep.metrics[m]} <span class="unit">(${unitLbl(div,m)})</span></td>` +
-          vals.map((_,i)=>cellHTML(vals, i, ipGuard, div)).join('') + '</tr>';
+        html += `<tr class="sub${isOpen?' show':''}" data-parent="${k}"><td>${rep.metrics[m]}</td>` +
+          vals.map((_,i)=>cellHTML(vals, i, ipGuard, m)).join('') + '</tr>';
       }
     }
   }
