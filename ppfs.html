@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script src="theme.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISHOS — PP FS สธ. ภาพรวมกองทุนหลัก/ย่อย</title>
+<style>
+:root{
+  --page:#F2F5F3; --card:#FFFFFF; --ink:#1C2B27; --ink-2:#5B6B65; --ink-3:#8A968F;
+  --line:#DCE3DE; --grid:#EDF1EE; --accent:#0E8A5F; --accent-deep:#0A6647; --accent-soft:#E4F1EB;
+  --blue:#3568C0; --blue-soft:#E8EEF9; --warn:#A9701F; --warn-soft:#F5E9D7;
+  --mono:ui-monospace,"SF Mono","Consolas",monospace;
+  --sans:"Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif;
+}
+:root[data-theme="dark"]{
+  --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+  --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+  --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0F2438; --card:#132C44; --ink:#DCEAF2; --ink-2:#8CA6B8; --ink-3:#5F7A8E;
+    --line:#28496580; --grid:#1B3A57; --accent:#21A579; --accent-deep:#35C08F; --accent-soft:#173A34;
+    --blue:#5590DD; --blue-soft:#16324D; --warn:#E3A857; --warn-soft:#3A2C15;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 22px 80px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header h1{font-size:19px;font-weight:700;margin:0}
+header .sub{font-size:12px;color:var(--ink-2);font-family:var(--mono)}
+.nav{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--line);flex-wrap:wrap}
+.nav a{padding:8px 16px;font-size:13.5px;color:var(--ink-2);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px}
+.nav a.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.nav a:hover{color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:12.5px;font-family:var(--sans);cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.controls .fld{display:flex;flex-direction:column;gap:3px}
+.controls label{font-size:11.5px;color:var(--ink-2)}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--ink);font-family:var(--sans);max-width:340px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.card h3{margin:0 0 4px;font-size:14.5px;font-weight:700}
+.csub{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin:0 0 10px}
+.info-ic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  background:var(--ink-3);color:var(--card);font-size:10px;font-weight:700;font-style:normal;cursor:pointer;
+  margin-left:5px;vertical-align:middle;user-select:none;flex-shrink:0}
+.info-ic:hover{background:var(--accent)}
+#info-pop{position:fixed;max-width:320px;background:var(--ink);color:var(--page);font-size:12.5px;line-height:1.55;
+  padding:10px 13px;border-radius:8px;z-index:200;display:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:760px){.stat-strip{grid-template-columns:repeat(2,1fr)}}
+.stat{padding:12px 14px}
+.stat .lbl{font-size:11.5px;color:var(--ink-2)}
+.stat .val{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat .delta{font-size:12px;font-weight:600;margin-top:2px}
+.rows{display:flex;flex-direction:column;gap:0}
+.row{display:grid;grid-template-columns:34px 1fr 150px;gap:12px;align-items:center;padding:8px 4px;
+  border-bottom:1px solid var(--grid);cursor:pointer;background:none;border-left:none;border-right:none;border-top:none;
+  width:100%;text-align:left;font-family:inherit;color:inherit}
+.row:hover{background:var(--accent-soft)}
+.row:last-child{border-bottom:none}
+.rank-n{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right}
+.rowmid{min-width:0}
+.fname{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.barwrap{display:block;position:relative;height:22px;background:var(--grid);border-radius:4px;overflow:visible;margin-top:4px}
+.barfill{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:var(--accent)}
+.rowval{font-family:var(--mono);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.rowval .d{font-size:10.5px;color:var(--ink-3);display:block}
+.crumb{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px}
+.crumb a{color:var(--accent);text-decoration:none;cursor:pointer}
+.crumb a:hover{text-decoration:underline}
+.crumb .sep{color:var(--ink-3)}
+.fallback-note{font-size:11.5px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 10px;margin-top:10px}
+footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.empty{padding:30px;text-align:center;color:var(--ink-3);font-size:13px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🌱 PP FS สธ. — ภาพรวมกองทุนหลัก/ย่อย</h1>
+      <div class="sub">MISHOS · เฉพาะหน่วยบริการสังกัด สป.สธ. · <span id="asof-sub"></span></div>
+    </div>
+    <button class="btn" id="theme-toggle">◐ โหมดสี</button>
+  </header>
+  <nav class="nav">
+    <a href="index.html">📈 เทรนด์ภาพรวม</a>
+    <a href="hospital.html">🏥 วิเคราะห์ราย รพ.</a>
+    <a href="rank.html">🏆 จัดอันดับ</a>
+    <a href="risk.html">⚠️ เงินเสี่ยง</a>
+    <a href="matrix.html">📊 ตารางภาพรวม</a>
+    <a class="on" href="ppfs.html" aria-current="page">🌱 PP FS สธ.</a>
+  </nav>
+
+  <div class="controls">
+    <div class="fld"><label>ปีงบประมาณ</label><select id="sel-fy"></select></div>
+    <div class="fld"><label>ตัวชี้วัด</label><select id="sel-metric">
+      <option value="2">จำนวนเงินเบิกจ่าย (บาท)</option>
+      <option value="0">จำนวนคน</option>
+      <option value="1">จำนวนครั้ง</option>
+    </select></div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="card stat"><div class="lbl" id="s-lbl">ยอดรวมปีงบ</div><div class="val" id="s-total">–</div><div class="delta" id="s-delta"></div></div>
+    <div class="card stat"><div class="lbl">หน่วยบริการที่มีข้อมูล</div><div class="val" id="s-nhosp">–</div></div>
+    <div class="card stat"><div class="lbl">กิจกรรมหลัก</div><div class="val" id="s-nmain">–</div></div>
+    <div class="card stat"><div class="lbl">กิจกรรมย่อยทั้งหมด</div><div class="val" id="s-nsub">–</div></div>
+  </div>
+
+  <div class="card">
+    <div class="crumb" id="crumb"></div>
+    <h3><span id="chart-title"></span><span class="info-ic" data-tip="แถบยาว = ค่าของกองทุนนั้นเทียบกับกองทุนที่มากที่สุดในรายการ (100%) · เรียงจากมากไปน้อย · คลิกแถวกิจกรรมหลักเพื่อเจาะดูกิจกรรมย่อยภายใน">i</span></h3>
+    <p class="csub" id="chart-sub"></p>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <footer>
+    ข้อมูล ณ 19 มิ.ย. 2569 (ปีงบ 2569 ยังไม่เต็มปี ~9 เดือน — เทียบกับปีอื่นที่เต็ม 12 เดือนโดยตรงไม่ได้) ·
+    ครอบคลุมเฉพาะหน่วยบริการสังกัด สป.สธ. เขต 1 (ไม่รวม รพศ./รพท./เอกชน/อปท.) ·
+    "อื่นๆ (ไม่มีชื่อกิจกรรมหลักกำกับ)" คือบริการคัดกรองปัจจัยเสี่ยงสุขภาพกาย/จิต+HIV self-test ที่มีอยู่จริงในข้อมูลแต่ยังไม่ถูกจัดหมวดกิจกรรมหลักในระบบต้นทาง (ไม่ใช่ข้อผิดพลาดจากการประมวลผล)
+  </footer>
+</div>
+<div id="tooltip"></div>
+
+<script src="data/ppfs_data.js"></script>
+<script>
+'use strict';
+const D = window.MISHOS_PPFS, YEARS = D.years, PARTIAL = D.partial_fy;
+let state = { fy: YEARS[YEARS.length-1], metric: 2, drill: null }; // drill = main label or null
+const $ = id => document.getElementById(id);
+
+(function(){
+  const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
+  document.addEventListener('click', e=>{
+    const ic = e.target.closest('.info-ic');
+    if (ic){
+      pop.textContent = ic.dataset.tip;
+      pop.style.display = 'block';
+      const r = ic.getBoundingClientRect();
+      pop.style.left = Math.max(8, Math.min(r.left, innerWidth-328))+'px';
+      pop.style.top = (r.bottom+8)+'px';
+      e.stopPropagation();
+    } else if (!e.target.closest('#info-pop')){ pop.style.display = 'none'; }
+  });
+})();
+function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
+  const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
+  return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
+function unitOf(vals){ const mx=Math.max(...vals.filter(v=>v!=null).map(Math.abs),0);
+  return mx>=1e6?1e6:1; }
+function unitLbl(div){ const b = state.metric===2?'บาท':state.metric===1?'ครั้ง':'คน';
+  return div===1e6?'ล้าน'+b:b; }
+function metricIdx(){ return +state.metric; }
+function valOf(yr, y){ return yr[y] ? yr[y][metricIdx()] : 0; }
+
+function renderFySel(){
+  $('sel-fy').innerHTML = YEARS.map(y=>`<option value="${y}" ${y===state.fy?'selected':''}>ปีงบ ${y}${y===PARTIAL?' (~9 เดือน)':''}</option>`).join('');
+}
+
+function renderKpis(){
+  const totals = { p:0, v:0, a:0 };
+  const prevY = YEARS[YEARS.indexOf(state.fy)-1];
+  let prevTotal = 0, curTotal = 0;
+  for (const m of D.mains){
+    const cur = m.yr[state.fy];
+    if (cur){ totals.p += cur[0]; totals.v += cur[1]; totals.a += cur[2]; curTotal += cur[metricIdx()]; }
+    if (prevY && m.yr[prevY]) prevTotal += m.yr[prevY][metricIdx()];
+  }
+  const div = unitOf([curTotal]), ulab = unitLbl(div);
+  const isPartial = state.fy === PARTIAL;
+  $('s-lbl').textContent = `ยอดรวมปีงบ ${state.fy}${isPartial?' (~9 เดือน)':''}`;
+  $('s-total').textContent = fmt(curTotal/div) + (isPartial?'*':'') + ' ' + ulab;
+  if (prevY && prevTotal){
+    const yoy = (curTotal-prevTotal)/prevTotal*100;
+    $('s-delta').textContent = `${yoy>=0?'▲':'▼'} ${fmt(Math.abs(yoy),1)}% จากปีงบ ${prevY}${isPartial?' (⚠ เทียบ ~9 เดือน กับปีเต็ม)':''}`;
+    $('s-delta').style.color = yoy>=0 ? 'var(--accent)' : 'var(--warn)';
+  } else {
+    $('s-delta').textContent = '';
+  }
+  $('s-nhosp').textContent = fmt(D.meta.n_hosp,0);
+  $('s-nmain').textContent = fmt(D.meta.n_main,0);
+  $('s-nsub').textContent = fmt(D.meta.n_sub,0);
+  $('asof-sub').textContent = `ข้อมูล ณ ${D.meta.as_of} · ${D.meta.n_hosp} หน่วยบริการ`;
+}
+
+function renderRows(){
+  const isPartial = state.fy === PARTIAL;
+  let list, title, sub, hasFallback = false;
+  if (!state.drill){
+    list = D.mains.map(m => ({label: m.label, v: valOf(m.yr, state.fy), key: m.label}));
+    title = 'กองทุนหลัก (กิจกรรมหลัก) — เรียงมากไปน้อย';
+    sub = `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''} · ${list.length} กิจกรรมหลัก · คลิกแถวเพื่อดูกิจกรรมย่อย`;
+    $('crumb').innerHTML = `<b>ทั้งหมด</b>`;
+  } else {
+    const m = D.mains.find(x => x.label === state.drill);
+    list = m.subs.map(s => ({label: s.label, v: valOf(s.yr, state.fy), key: s.label}));
+    title = 'กิจกรรมย่อย — เรียงมากไปน้อย';
+    sub = `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`;
+    hasFallback = m.label.startsWith('อื่นๆ');
+    $('crumb').innerHTML = `<a id="crumb-back">ทั้งหมด (${D.mains.length} กิจกรรมหลัก)</a><span class="sep">›</span><b>${m.label}</b>`;
+  }
+  list.sort((a,b) => b.v - a.v);
+  const mx = Math.max(...list.map(o=>o.v), 0);
+  const div = unitOf(list.map(o=>o.v)), ulab = unitLbl(div);
+
+  $('chart-title').textContent = title;
+  $('chart-sub').textContent = sub;
+
+  const rows = $('rows');
+  if (!list.length || mx<=0){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของปีงบนี้</div>`; return; }
+  rows.innerHTML = list.map((o,i) => {
+    const pct = mx>0 ? o.v/mx*100 : 0;
+    const clickable = !state.drill;
+    return `<button class="row" data-key="${encodeURIComponent(o.key)}" ${clickable?'':'style="cursor:default"'}>
+      <span class="rank-n">${i+1}</span>
+      <span class="rowmid">
+        <span class="fname" title="${o.label.replace(/"/g,'&quot;')}">${o.label}</span>
+        <span class="barwrap"><span class="barfill" style="width:${pct}%"></span></span>
+      </span>
+      <span class="rowval">${fmt(o.v/div)}${isPartial?'*':''} ${ulab}</span>
+    </button>`;
+  }).join('');
+  if (!state.drill){
+    rows.querySelectorAll('.row').forEach(el => el.addEventListener('click', () => {
+      state.drill = decodeURIComponent(el.dataset.key);
+      renderRows();
+    }));
+  }
+  const backEl = $('crumb-back');
+  if (backEl) backEl.addEventListener('click', () => { state.drill = null; renderRows(); });
+
+  const card = rows.closest('.card');
+  let note = card.querySelector('.fallback-note');
+  if (hasFallback){
+    if (!note){ note = document.createElement('div'); note.className='fallback-note'; card.appendChild(note); }
+    note.textContent = 'หมายเหตุ: กิจกรรมหลักนี้ไม่มีชื่อกำกับในระบบต้นทาง แต่กิจกรรมย่อยด้านบนเป็นรายการจริง (คัดกรองปัจจัยเสี่ยงสุขภาพกาย/จิต, HIV self-test ฯลฯ)';
+  } else if (note){ note.remove(); }
+}
+
+function renderAll(){ renderKpis(); renderRows(); }
+
+$('sel-fy').addEventListener('change', e=>{ state.fy=e.target.value; renderAll(); });
+$('sel-metric').addEventListener('change', e=>{ state.metric=+e.target.value; renderAll(); });
+$('theme-toggle').addEventListener('click', ()=>{
+  const next = document.documentElement.dataset.theme==='dark' ? 'light':'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('mishos-theme', next);
+});
+renderFySel();
+renderAll();
+</script>
+</body>
+</html>
