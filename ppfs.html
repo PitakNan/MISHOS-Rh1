@@ -76,7 +76,9 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
 .comp-seg:hover{filter:brightness(1.2)}
 .comp-seg.active{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
 .yr-block{display:flex;flex-direction:column;gap:4px;padding-left:34px}
-.yr-row{display:flex;align-items:center;gap:8px}
+.yr-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;
+  padding:2px 4px;margin:-2px -4px;border-radius:5px;cursor:pointer;font-family:inherit;color:inherit}
+.yr-row:hover{background:var(--accent-soft)}
 .yr-tag{font-family:var(--mono);font-size:10px;color:var(--ink-3);width:40px;flex-shrink:0}
 .yr-bar-wrap{position:relative;height:14px;background:var(--grid);border-radius:3px;flex:1;overflow:visible}
 .yr-bar-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px}
@@ -105,6 +107,36 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
 footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
 .empty{padding:30px;text-align:center;color:var(--ink-3);font-size:13px}
 .hidden{display:none}
+#tooltip{position:fixed;pointer-events:none;background:var(--ink);color:var(--page);font-size:11.5px;font-family:var(--sans);
+  padding:8px 10px;border-radius:8px;z-index:250;display:none;max-width:280px;box-shadow:0 4px 16px rgba(0,0,0,.3);line-height:1.6}
+#tooltip .tt-hd{font-weight:700;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:5px}
+#tooltip .tt-row{display:flex;justify-content:space-between;gap:10px;font-size:11px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-bg.hidden{display:none}
+.modal-box{width:70vw;height:70vh;max-width:1100px;background:var(--card);border-radius:12px;display:flex;
+  flex-direction:column;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.modal-head h3{margin:0;font-size:15px}
+.modal-body{display:flex;flex:1;overflow:hidden}
+.modal-side{width:220px;flex-shrink:0;border-right:1px solid var(--line);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.modal-side .fld{display:flex;flex-direction:column;gap:4px}
+.modal-side label{font-size:11.5px;color:var(--ink-2)}
+.modal-side select{width:100%;max-width:none}
+.modal-main{flex:1;padding:14px 18px;overflow-y:auto}
+.mo-row{display:grid;grid-template-columns:24px 1fr 130px;gap:10px;align-items:center;padding:6px 2px;
+  border-bottom:1px solid var(--grid);cursor:pointer;background:none;border-left:none;border-right:none;border-top:none;
+  width:100%;text-align:left;font-family:inherit;color:inherit}
+.mo-row:last-child{border-bottom:none}
+.mo-row:hover{background:var(--accent-soft)}
+.mo-row.leaf{cursor:default}
+.mo-row.leaf:hover{background:none}
+.mo-mid{min-width:0}
+.mo-label{display:block;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mo-count{color:var(--ink-3);font-family:var(--mono);font-size:10.5px}
+.mo-barwrap{display:block;position:relative;height:16px;background:var(--grid);border-radius:3px;margin-top:3px}
+.mo-barfill{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:var(--accent)}
+.mo-val{font-family:var(--mono);font-size:11.5px;text-align:right;white-space:nowrap}
+@media(max-width:760px){.modal-box{width:94vw;height:88vh}.modal-side{width:150px}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -135,6 +167,8 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     </select></div>
     <div class="fld"><label>จังหวัด</label><select id="sel-prov"></select></div>
     <div class="fld"><label>ประเภทหน่วยบริการ</label><select id="sel-type"></select></div>
+    <div class="fld"><label>ขนาดหน่วยบริการ</label><select id="sel-size"></select></div>
+    <div class="fld"><label>ขนาด + ประชากร/เตียง</label><select id="sel-sizegroup"></select></div>
     <div class="fld"><label>หน่วยบริการ</label><select id="sel-hosp"></select></div>
     <label class="chk-fld" id="chk-fld"><input type="checkbox" id="chk-project"> ประมาณการจนถึงสิ้นปี
       <span class="info-ic" data-tip="เอาผลงานจริงที่มีอยู่ (~9 เดือนแรกของปีงบ 2569) มาคำนวณเทียบสัดส่วนวันที่ผ่านมาแล้วของปีงบ (72%) เพื่อกะประมาณว่าถ้าจังหวะเท่าเดิมไปจนครบ 12 เดือนจะได้ยอดเท่าไหร่ — เป็นการประมาณการเชิงเส้นอย่างง่าย (ยอดจริง ÷ สัดส่วนวันที่ผ่านมา) ไม่ได้ปรับตามฤดูกาล ใช้ดูแนวโน้มคร่าวๆ เท่านั้น ไม่ใช่ตัวเลขที่แม่นยำ · เลือกจากช่อง 'ปีงบประมาณ' ก็ได้เหมือนกัน (เชื่อมกันอัตโนมัติ)">i</span></label>
@@ -150,7 +184,7 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
 
   <div class="card">
     <div class="crumb" id="crumb"></div>
-    <h3><span id="chart-title"></span><span class="info-ic" data-tip="แถบยาว = ค่าของปีงบนั้นเทียบกับแถบที่ยาวที่สุดในตารางทั้งหมด (สเกลเดียวกันทุกแถบ เทียบข้ามกันได้จริง) · เลือก 'ทุกปีงบ' เพื่อดู 3 แถบต่อกองทุน (2567 เขียว/2568 เหลือง/2569 น้ำเงิน) · ติ๊ก 'ประมาณการจนถึงสิ้นปี' แถบ 2569 จะมีส่วนต่อขยายจางๆแสดงค่าที่คาดว่าจะได้ถ้าครบปี · ติ๊ก 'แสดงแถบสัดส่วนประเภทหน่วยบริการ' เพื่อดูแถบสีเล็กด้านบนแต่ละกองทุน แสดงสัดส่วนตามประเภทหน่วยบริการของปีที่ใช้จัดอันดับ (ปิดไว้เป็นค่าเริ่มต้น) · คลิกชื่อกิจกรรมหลักเพื่อเจาะดูกิจกรรมย่อยภายใน">i</span></h3>
+    <h3><span id="chart-title"></span><span class="info-ic" data-tip="แถบยาว = ค่าของปีงบนั้นเทียบกับแถบที่ยาวที่สุดในตารางทั้งหมด (สเกลเดียวกันทุกแถบ เทียบข้ามกันได้จริง) · เลือก 'ทุกปีงบ' เพื่อดู 3 แถบต่อกองทุน (2567 เขียว/2568 เหลือง/2569 น้ำเงิน) หรือ 'รวมทุกปีงบ' เพื่อรวมเป็นแถบเดียว · ติ๊ก 'ประมาณการจนถึงสิ้นปี' แถบ 2569 (หรือแถบรวม) จะมีส่วนต่อขยายจางๆแสดงค่าที่คาดว่าจะได้ถ้าครบปี · ติ๊ก 'แสดงแถบสัดส่วนประเภทหน่วยบริการ' เพื่อดูแถบสีเล็กด้านบนแต่ละกองทุน (ปิดไว้เป็นค่าเริ่มต้น) · คลิกชื่อกิจกรรมหลักเพื่อเจาะดูกิจกรรมย่อยภายใน · คลิกที่แถบตัวเลข (ไม่ใช่ชื่อ) เพื่อเปิดหน้าต่างแยกกลุ่มตามขนาดหน่วยบริการ">i</span></h3>
     <p class="csub" id="chart-sub"></p>
     <div class="legend" id="rows-legend"></div>
     <div class="rows" id="rows"></div>
@@ -163,12 +197,34 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </footer>
 </div>
 <div id="tooltip"></div>
+<div class="modal-bg hidden" id="modal-bg">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="mo-title"></h3>
+        <p class="csub" id="mo-sub" style="margin:4px 0 0"></p>
+      </div>
+      <button class="btn" id="mo-close">✕ ปิด</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-side">
+        <div class="fld"><label>ขนาดหน่วยบริการ</label><select id="mo-sel-size"></select></div>
+        <div class="fld"><label>ขนาด + ประชากร/เตียง</label><select id="mo-sel-sizegroup"></select></div>
+        <p class="csub" style="margin:4px 0 0;line-height:1.6">เลือกจากเมนูนี้เพื่อข้ามไปดูกลุ่มที่ต้องการโดยตรง หรือคลิกที่แถบด้านขวาเพื่อไล่ดูทีละขนาด · ชี้ที่แถบเพื่อดูรายชื่อหน่วยบริการในกลุ่มนั้น</p>
+      </div>
+      <div class="modal-main">
+        <div class="crumb" id="mo-crumb"></div>
+        <div class="rows" id="mo-rows"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="data/ppfs_data.js"></script>
 <script>
 'use strict';
 const D = window.MISHOS_PPFS, YEARS = D.years, PARTIAL = D.partial_fy;
-let state = { fy: 'all', metric: 2, drill: null, project: false, prov: null, hosp: null, type: null, showComp: false };
+let state = { fy: 'all', metric: 2, drill: null, project: false, prov: null, hosp: null, type: null, size: null, sizeGroup: null, showComp: false };
 const $ = id => document.getElementById(id);
 
 // ── fiscal-year progress (for "ประมาณการจนถึงสิ้นปี") ──
@@ -213,7 +269,7 @@ function unitLbl(div){ const b = state.metric===2?'บาท':state.metric===1?'
   return div===1e6?'ล้าน'+b:b; }
 function metricIdx(){ return +state.metric; }
 
-// ── scope: which hcodes count, given province/type/facility filters ──
+// ── scope: which hcodes count, given province/type/size/facility filters ──
 function hcodesInScope(){
   let list;
   if (state.hosp) list = [state.hosp];
@@ -222,55 +278,86 @@ function hcodesInScope(){
     if (state.prov != null) list = list.filter(h => D.hosp[h].p === state.prov);
   }
   if (state.type != null) list = list.filter(h => D.hosp[h].t === state.type);
+  if (state.size != null) list = list.filter(h => D.hosp[h].sz === state.size);
+  if (state.sizeGroup != null) list = list.filter(h => D.hosp[h].sg === state.sizeGroup);
   return list;
 }
-function valOf(hospMap, y, hcodes){
+function hVal(hospMap, hcode, y, projecting){
+  const yr = hospMap[hcode];
+  let v = (yr && yr[y]) ? yr[y][metricIdx()] : 0;
+  if (projecting && y === PARTIAL) v = projectVal(v);
+  return v;
+}
+function valOf(hospMap, y, hcodes){ // ยอดของปีเดียว (ไม่ประมาณการ) — ใช้เป็นค่า "จริง" ในแถบ
   let s = 0;
-  for (const h of hcodes){ const yr = hospMap[h]; if (yr && yr[y]) s += yr[y][metricIdx()]; }
+  for (const h of hcodes) s += hVal(hospMap, h, y, false);
   return s;
 }
-function typeComposition(hospMap, y, hcodes){
+function sumAllYears(hospMap, hcodes, projecting){ // รวมทุกปีงบ (โหมด 'sum')
+  let s = 0;
+  for (const h of hcodes) for (const y of YEARS) s += hVal(hospMap, h, y, projecting);
+  return s;
+}
+function typeComposition(hospMap, y, hcodes, projecting){
   const totals = D.types.map(()=>0);
-  for (const h of hcodes){
-    const yr = hospMap[h]; if (!yr || !yr[y]) continue;
-    const t = D.hosp[h].t; if (t>=0) totals[t] += yr[y][metricIdx()];
-  }
+  const addYear = yy => {
+    for (const h of hcodes){
+      const t = D.hosp[h].t; if (t<0) continue;
+      totals[t] += hVal(hospMap, h, yy, projecting);
+    }
+  };
+  if (y === 'sum') YEARS.forEach(addYear); else addYear(y);
   return totals;
 }
 
 function renderFySel(){
-  const cur = state.fy==='all' ? 'all' : (state.fy===PARTIAL && state.project) ? 'proj' : state.fy;
-  const opts = YEARS.map(y => {
-    if (y===PARTIAL) return [
-      [y, `ปีงบ ${y} (~9 เดือน)`],
-      ['proj', `ปีงบ ${y} (ประมาณการเต็มปี)`],
-    ];
-    return [[y, `ปีงบ ${y}`]];
-  }).flat();
+  const opts = YEARS.map(y => [y, `ปีงบ ${y}${y===PARTIAL?' (~9 เดือน)':''}`]);
+  opts.push(['sum', 'รวมทุกปีงบ (2567-2569)']);
   opts.push(['all', 'ทุกปีงบ (เปรียบเทียบ)']);
-  $('sel-fy').innerHTML = opts.map(([v,l]) => `<option value="${v}" ${v===cur?'selected':''}>${l}</option>`).join('');
+  $('sel-fy').innerHTML = opts.map(([v,l]) => `<option value="${v}" ${v===state.fy?'selected':''}>${l}</option>`).join('');
 }
 function applyFySelValue(v){
-  if (v === 'proj'){ state.fy = PARTIAL; state.project = true; }
-  else if (v === 'all'){ state.fy = 'all'; }
-  else { state.fy = v; if (v === PARTIAL) state.project = false; }
+  state.fy = v;
+  if (v === 'sum') state.project = true; // "รวมทุกปีงบ" ควรกะประมาณการ 2569 ให้เต็มปีไปด้วยโดยปริยาย (เชื่อมกับปุ่มติ๊ก)
+  else if (v !== PARTIAL && v !== 'all') state.project = false; // ประมาณการไม่มีความหมายกับปีที่ปิดเต็มปีแล้ว
+}
+function entriesExcept(skip){ // ทุกหน่วยที่ตรงตัวกรองอื่นๆ (ไม่รวมตัวกรองที่ระบุ skip เอง) — ใช้คำนวณ count ในแต่ละ select
+  return Object.entries(D.hosp).filter(([,h]) =>
+    (skip==='p' || state.prov==null || h.p===state.prov) &&
+    (skip==='t' || state.type==null || h.t===state.type) &&
+    (skip==='sz' || state.size==null || h.sz===state.size) &&
+    (skip==='sg' || state.sizeGroup==null || h.sg===state.sizeGroup));
 }
 function renderProvSel(){
-  const inType = state.type!=null ? Object.entries(D.hosp).filter(([,h])=>h.t===state.type) : Object.entries(D.hosp);
-  const counts = D.provs.map((_,i) => inType.filter(([,h])=>h.p===i).length);
-  $('sel-prov').innerHTML = `<option value="" ${state.prov==null?'selected':''}>ทั้งหมด (${inType.length} แห่ง)</option>` +
+  const inScope = entriesExcept('p');
+  const counts = D.provs.map((_,i) => inScope.filter(([,h])=>h.p===i).length);
+  $('sel-prov').innerHTML = `<option value="" ${state.prov==null?'selected':''}>ทั้งหมด (${inScope.length} แห่ง)</option>` +
     D.provs.map((p,i) => counts[i] ? `<option value="${i}" ${state.prov===i?'selected':''}>${p} (${counts[i]})</option>` : '').join('');
 }
 function renderTypeSel(){
-  const inProv = state.prov!=null ? Object.entries(D.hosp).filter(([,h])=>h.p===state.prov) : Object.entries(D.hosp);
-  const counts = D.types.map((_,i) => inProv.filter(([,h])=>h.t===i).length);
-  $('sel-type').innerHTML = `<option value="" ${state.type==null?'selected':''}>ทั้งหมด (${inProv.length} แห่ง)</option>` +
+  const inScope = entriesExcept('t');
+  const counts = D.types.map((_,i) => inScope.filter(([,h])=>h.t===i).length);
+  $('sel-type').innerHTML = `<option value="" ${state.type==null?'selected':''}>ทั้งหมด (${inScope.length} แห่ง)</option>` +
     D.types.map((t,i) => counts[i] ? `<option value="${i}" ${state.type===i?'selected':''}>${t} (${counts[i]})</option>` : '').join('');
+}
+function renderSizeSel(){
+  const inScope = entriesExcept('sz');
+  const counts = D.sizes.map((_,i) => inScope.filter(([,h])=>h.sz===i).length);
+  $('sel-size').innerHTML = `<option value="" ${state.size==null?'selected':''}>ทั้งหมด (${inScope.length} แห่ง)</option>` +
+    D.sizes.map((s,i) => counts[i] ? `<option value="${i}" ${state.size===i?'selected':''}>${s} (${counts[i]})</option>` : '').join('');
+}
+function renderSizeGroupSel(){
+  const inScope = entriesExcept('sg');
+  const counts = D.sizeGroups.map((_,i) => inScope.filter(([,h])=>h.sg===i).length);
+  $('sel-sizegroup').innerHTML = `<option value="" ${state.sizeGroup==null?'selected':''}>ทั้งหมด (${inScope.length} แห่ง)</option>` +
+    D.sizeGroups.map((g,i) => counts[i] ? `<option value="${i}" ${state.sizeGroup===i?'selected':''}>${g.label} (${counts[i]})</option>` : '').join('');
 }
 function renderHospSel(){
   let filtered = Object.entries(D.hosp);
   if (state.prov!=null) filtered = filtered.filter(([,h])=>h.p===state.prov);
   if (state.type!=null) filtered = filtered.filter(([,h])=>h.t===state.type);
+  if (state.size!=null) filtered = filtered.filter(([,h])=>h.sz===state.size);
+  if (state.sizeGroup!=null) filtered = filtered.filter(([,h])=>h.sg===state.sizeGroup);
   const sorted = filtered.sort((a,b)=>a[1].n.localeCompare(b[1].n,'th'));
   let html = `<option value="" ${!state.hosp?'selected':''}>ทั้งหมด (${sorted.length} แห่งในขอบเขตที่เลือก)</option>`;
   if (state.prov==null){
@@ -284,7 +371,7 @@ function renderHospSel(){
   }
   $('sel-hosp').innerHTML = html;
 }
-function projectRelevant(){ return state.fy === PARTIAL || state.fy === 'all'; }
+function projectRelevant(){ return state.fy === PARTIAL || state.fy === 'all' || state.fy === 'sum'; }
 function updateProjectAvailability(){
   const on = projectRelevant();
   $('chk-fld').classList.toggle('dim', !on);
@@ -297,24 +384,34 @@ function scopeLabel(){
   const parts = [];
   if (state.prov!=null) parts.push(D.provs[state.prov]);
   if (state.type!=null) parts.push(D.types[state.type]);
+  if (state.sizeGroup!=null) parts.push(D.sizeGroups[state.sizeGroup].label);
+  else if (state.size!=null) parts.push(D.sizes[state.size]);
   return parts.length ? parts.join(' · ') : 'ทั้งเขต 1';
+}
+function anyScopeFilterActive(){
+  return !!(state.hosp || state.prov!=null || state.type!=null || state.size!=null || state.sizeGroup!=null);
 }
 
 function renderKpis(){
   const scopeH = hcodesInScope();
-  const headlineY = state.fy === 'all' ? PARTIAL : state.fy;
-  const prevY = YEARS[YEARS.indexOf(headlineY)-1];
-  const projecting = state.project && headlineY === PARTIAL;
-  let curTotal = 0, prevTotal = 0;
-  for (const m of D.mains){
-    curTotal += valOf(m.hosp, headlineY, scopeH);
-    if (prevY) prevTotal += valOf(m.hosp, prevY, scopeH);
+  const isSum = state.fy === 'sum';
+  const headlineY = state.fy === 'all' ? PARTIAL : isSum ? 'sum' : state.fy;
+  const projecting = state.project && projectRelevant();
+  let curTotal = 0, prevTotal = 0, prevY = null;
+  if (isSum){
+    for (const m of D.mains) curTotal += sumAllYears(m.hosp, scopeH, projecting);
+  } else {
+    prevY = YEARS[YEARS.indexOf(headlineY)-1];
+    for (const m of D.mains){
+      curTotal += valOf(m.hosp, headlineY, scopeH);
+      if (prevY) prevTotal += valOf(m.hosp, prevY, scopeH);
+    }
+    if (projecting) curTotal = projectVal(curTotal);
   }
-  if (projecting) curTotal = projectVal(curTotal);
   const div = unitOf([curTotal]), ulab = unitLbl(div);
   const isPartial = headlineY === PARTIAL;
-  $('s-lbl').textContent = `ยอดรวมปีงบ ${headlineY}${projecting?' (ประมาณการเต็มปี)':isPartial?' (~9 เดือน)':''} · ${scopeLabel()}`;
-  $('s-total').textContent = fmt(curTotal/div) + (projecting?'≈':isPartial?'*':'') + ' ' + ulab;
+  $('s-lbl').textContent = `ยอดรวม${isSum?'ทุกปีงบ (2567-2569)':'ปีงบ '+headlineY}${projecting?' (ประมาณการเต็มปี)':isPartial?' (~9 เดือน)':''} · ${scopeLabel()}`;
+  $('s-total').textContent = fmt(curTotal/div) + (projecting?'≈':isPartial&&!isSum?'*':'') + ' ' + ulab;
   $('s-total').style.color = projecting ? 'var(--warn)' : '';
   if (prevY && prevTotal){
     const yoy = (curTotal-prevTotal)/prevTotal*100;
@@ -323,26 +420,33 @@ function renderKpis(){
   } else {
     $('s-delta').textContent = '';
   }
-  $('s-nhosp-lbl').textContent = (state.hosp || state.prov!=null || state.type!=null) ? 'หน่วยบริการในขอบเขตที่เลือก' : 'หน่วยบริการที่มีข้อมูล';
+  $('s-nhosp-lbl').textContent = anyScopeFilterActive() ? 'หน่วยบริการในขอบเขตที่เลือก' : 'หน่วยบริการที่มีข้อมูล';
   $('s-nhosp').textContent = fmt(scopeH.length,0);
   $('s-nmain').textContent = fmt(D.meta.n_main,0);
   $('s-nsub').textContent = fmt(D.meta.n_sub,0);
   $('asof-sub').textContent = `ข้อมูล ณ ${D.meta.as_of} · ${D.meta.n_hosp} หน่วยบริการทั้งเขต`;
 }
 
-function yearRowHTML(y, actual, div, ulab, globalMax, projecting){
-  const isP = y === PARTIAL;
-  const proj = (isP && projecting) ? projectVal(actual) : null;
-  const pctA = globalMax>0 ? (actual||0)/globalMax*100 : 0;
-  const pctP = proj!=null && globalMax>0 ? proj/globalMax*100 : null;
-  const color = YEAR_COLOR[y];
-  const ext = pctP!=null ? `<span class="yr-bar-fill proj-ext" style="left:${pctA}%;width:${Math.max(0,pctP-pctA)}%;background:${color}"></span>` : '';
-  const valTxt = `${fmt((actual||0)/div)}${isP&&!proj?'*':''} ${ulab}` + (proj!=null?`<span class="proj-tag">≈${fmt(proj/div)} ${ulab} ถ้าครบปี</span>`:'');
-  return `<div class="yr-row">
-    <span class="yr-tag">${y}${isP?'*':''}</span>
-    <span class="yr-bar-wrap"><span class="yr-bar-fill" style="width:${pctA}%;background:${color}"></span>${ext}</span>
+function computeBar(hospMap, y, scopeH, projecting){ // {actual, proj, color, tag} — คำนวณค่าของ 1 แถบ ไม่ว่าจะเป็นปีเดียวหรือโหมด 'sum'
+  if (y === 'sum'){
+    const actual = sumAllYears(hospMap, scopeH, false);
+    const proj = projecting ? sumAllYears(hospMap, scopeH, true) : null;
+    return { actual, proj, color: 'var(--accent)', tag: 'รวม 67-69', markStar: !projecting };
+  }
+  const actual = valOf(hospMap, y, scopeH);
+  const proj = (y===PARTIAL && projecting) ? projectVal(actual) : null;
+  return { actual, proj, color: YEAR_COLOR[y], tag: y+(y===PARTIAL?'*':''), markStar: y===PARTIAL && proj==null };
+}
+function barRowHTML(y, bar, div, ulab, globalMax){
+  const pctA = globalMax>0 ? (bar.actual||0)/globalMax*100 : 0;
+  const pctP = bar.proj!=null && globalMax>0 ? bar.proj/globalMax*100 : null;
+  const ext = pctP!=null ? `<span class="yr-bar-fill proj-ext" style="left:${pctA}%;width:${Math.max(0,pctP-pctA)}%;background:${bar.color}"></span>` : '';
+  const valTxt = `${fmt((bar.actual||0)/div)}${bar.markStar?'*':''} ${ulab}` + (bar.proj!=null?`<span class="proj-tag">≈${fmt(bar.proj/div)} ${ulab} ถ้าครบปี</span>`:'');
+  return `<button class="yr-row" data-y="${y}">
+    <span class="yr-tag">${bar.tag}</span>
+    <span class="yr-bar-wrap"><span class="yr-bar-fill" style="width:${pctA}%;background:${bar.color}"></span>${ext}</span>
     <span class="yr-val">${valTxt}</span>
-  </div>`;
+  </button>`;
 }
 function compositionBarHTML(totals){
   const sum = totals.reduce((a,b)=>a+b,0);
@@ -378,25 +482,25 @@ function renderLegend(showYears, projecting){
 function renderRows(){
   updateProjectAvailability();
   const allYears = state.fy === 'all';
-  const isPartial = !allYears && state.fy === PARTIAL;
+  const isSum = state.fy === 'sum';
+  const isPartial = !allYears && !isSum && state.fy === PARTIAL;
   const projecting = state.project && projectRelevant();
-  const showYears = allYears ? YEARS : [state.fy];
+  const showYears = allYears ? YEARS : isSum ? ['sum'] : [state.fy];
   const scopeH = hcodesInScope();
   let list, title, sub, hasFallback = false;
+  const modeNote = allYears ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''}`
+    : isSum ? `รวมทุกปีงบ 2567-2569${projecting?' (2569 ใช้ค่าประมาณการเต็มปี)':' (2569 ใช้ค่าจริงเท่าที่มี ~9 เดือน)'}`
+    : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''}`;
   if (!state.drill){
     list = D.mains.map(m => ({label: m.label, hosp: m.hosp, key: m.label}));
     title = 'กองทุนหลัก (กิจกรรมหลัก) — เรียงมากไปน้อย';
-    sub = allYears
-      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${scopeLabel()} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`
-      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${scopeLabel()} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`;
+    sub = `${modeNote} · ${scopeLabel()} · ${list.length} กิจกรรมหลัก · คลิกชื่อกิจกรรมเพื่อดูกิจกรรมย่อย`;
     $('crumb').innerHTML = `<b>ทั้งหมด</b>`;
   } else {
     const m = D.mains.find(x => x.label === state.drill);
     list = m.subs.map(s => ({label: s.label, hosp: s.hosp, key: s.label}));
     title = 'กิจกรรมย่อย — เรียงมากไปน้อย';
-    sub = allYears
-      ? `เปรียบเทียบปีงบ ${YEARS.join('/')}${projecting?' (ปี 2569 มีแถบประมาณการต่อท้าย)':''} · ${scopeLabel()} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`
-      : `ปีงบ ${state.fy}${isPartial?' (~9 เดือน ไม่เต็มปี)':''}${projecting?' — มีแถบประมาณการต่อท้าย':''} · ${scopeLabel()} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`;
+    sub = `${modeNote} · ${scopeLabel()} · ${list.length} กิจกรรมย่อย ภายใต้ "${m.label}"`;
     hasFallback = m.label.startsWith('อื่นๆ');
     $('crumb').innerHTML = `<a id="crumb-back">ทั้งหมด (${D.mains.length} กิจกรรมหลัก)</a><span class="sep">›</span><b>${m.label}</b>`;
   }
@@ -408,25 +512,25 @@ function renderRows(){
   const rows = $('rows');
   const clickable = !state.drill;
 
-  const sortYear = allYears ? PARTIAL : state.fy;
+  const sortYear = allYears ? PARTIAL : isSum ? 'sum' : state.fy;
   list.forEach(o => {
-    const actual = valOf(o.hosp, sortYear, scopeH);
-    o._sort = (projecting && sortYear===PARTIAL) ? projectVal(actual) : actual;
+    const b = computeBar(o.hosp, sortYear, scopeH, projecting);
+    o._sort = b.proj!=null ? b.proj : b.actual;
   });
   list.sort((a,b) => (b._sort||0) - (a._sort||0));
 
   const allVals = [];
   list.forEach(o => showYears.forEach(y => {
-    const v = valOf(o.hosp, y, scopeH);
-    allVals.push(v);
-    if (projecting && y===PARTIAL) allVals.push(projectVal(v));
+    const b = computeBar(o.hosp, y, scopeH, projecting);
+    allVals.push(b.actual);
+    if (b.proj!=null) allVals.push(b.proj);
   }));
   const div = unitOf(allVals), ulab = unitLbl(div);
   const globalMax = Math.max(...allVals.filter(v=>v!=null), 0);
 
   if (!list.length || globalMax<=0){ rows.innerHTML = `<div class="empty">ไม่มีข้อมูลของขอบเขต/ปีงบที่เลือก</div>`; return; }
   rows.innerHTML = list.map((o,i) => {
-    const compHtml = state.showComp ? compositionBarHTML(typeComposition(o.hosp, sortYear, scopeH)) : '';
+    const compHtml = state.showComp ? compositionBarHTML(typeComposition(o.hosp, sortYear, scopeH, projecting)) : '';
     return `
     <div class="fund-block">
       <button class="fund-head" data-key="${encodeURIComponent(o.key)}" ${clickable?'':'style="cursor:default"'}>
@@ -434,9 +538,19 @@ function renderRows(){
         <span class="fname" title="${o.label.replace(/"/g,'&quot;')}">${o.label}</span>
       </button>
       ${compHtml}
-      <div class="yr-block">${showYears.map(y => yearRowHTML(y, valOf(o.hosp,y,scopeH), div, ulab, globalMax, projecting)).join('')}</div>
+      <div class="yr-block">${showYears.map(y => barRowHTML(y, computeBar(o.hosp,y,scopeH,projecting), div, ulab, globalMax)).join('')}</div>
     </div>`;
   }).join('');
+
+  rows.querySelectorAll('.fund-block').forEach((block, idx) => {
+    const o = list[idx];
+    block.querySelectorAll('.yr-row').forEach(rowEl => {
+      rowEl.addEventListener('click', e => {
+        e.stopPropagation();
+        openDrillModal(o, rowEl.dataset.y, projecting, div, ulab, scopeH);
+      });
+    });
+  });
 
   if (clickable){
     rows.querySelectorAll('.fund-head').forEach(el => el.addEventListener('click', () => {
@@ -465,21 +579,35 @@ function renderAll(){ renderKpis(); renderRows(); }
 
 $('sel-fy').addEventListener('change', e=>{ applyFySelValue(e.target.value); renderFySel(); renderAll(); });
 $('sel-metric').addEventListener('change', e=>{ state.metric=+e.target.value; renderAll(); });
-$('chk-project').addEventListener('change', e=>{ state.project=e.target.checked; renderFySel(); renderAll(); });
+$('chk-project').addEventListener('change', e=>{ state.project=e.target.checked; renderAll(); });
 $('sel-prov').addEventListener('change', e=>{
   state.prov = e.target.value===''?null:+e.target.value;
   state.hosp = null;
-  renderTypeSel(); renderHospSel(); renderAll();
+  renderTypeSel(); renderSizeSel(); renderSizeGroupSel(); renderHospSel(); renderAll();
 });
 $('sel-type').addEventListener('change', e=>{
   state.type = e.target.value===''?null:+e.target.value;
   state.hosp = null;
-  renderProvSel(); renderHospSel(); renderAll();
+  renderProvSel(); renderSizeSel(); renderSizeGroupSel(); renderHospSel(); renderAll();
+});
+$('sel-size').addEventListener('change', e=>{
+  state.size = e.target.value===''?null:+e.target.value;
+  state.sizeGroup = null; state.hosp = null;
+  renderProvSel(); renderTypeSel(); renderSizeGroupSel(); renderHospSel(); renderAll();
+});
+$('sel-sizegroup').addEventListener('change', e=>{
+  state.sizeGroup = e.target.value===''?null:+e.target.value;
+  if (state.sizeGroup!=null) state.size = D.sizeGroups[state.sizeGroup].sz;
+  state.hosp = null;
+  renderProvSel(); renderTypeSel(); renderSizeSel(); renderHospSel(); renderAll();
 });
 $('sel-hosp').addEventListener('change', e=>{
   state.hosp = e.target.value || null;
-  if (state.hosp){ state.prov = D.hosp[state.hosp].p; state.type = D.hosp[state.hosp].t; }
-  renderProvSel(); renderTypeSel(); renderAll();
+  if (state.hosp){
+    const h = D.hosp[state.hosp];
+    state.prov = h.p; state.type = h.t; state.size = h.sz; state.sizeGroup = h.sg;
+  }
+  renderProvSel(); renderTypeSel(); renderSizeSel(); renderSizeGroupSel(); renderAll();
 });
 $('chk-comp').addEventListener('change', e=>{ state.showComp=e.target.checked; renderAll(); });
 $('theme-toggle').addEventListener('click', ()=>{
@@ -487,9 +615,131 @@ $('theme-toggle').addEventListener('click', ()=>{
   document.documentElement.dataset.theme = next;
   localStorage.setItem('mishos-theme', next);
 });
+
+// ── popup drill-down: คลิกแถบปีงบของกองทุน → แยกกลุ่มตามขนาดหน่วยบริการ ──
+let modalCtx = null; // {hospMap, y, projecting, div, ulab, scopeH, fundLabel}
+let modalDrillSize = null; // null = level 1 (ตามขนาด) · idx = level 2 (ตามขนาด+POP ภายในขนาดนั้น)
+
+function modalHcodeVal(hcode){
+  const { hospMap, y, projecting } = modalCtx;
+  if (y === 'sum'){
+    let s = 0;
+    for (const yy of YEARS) s += hVal(hospMap, hcode, yy, projecting);
+    return s;
+  }
+  return hVal(hospMap, hcode, y, projecting);
+}
+function openDrillModal(o, y, projecting, div, ulab, scopeH){
+  modalCtx = { hospMap: o.hosp, y, projecting, div, ulab, scopeH, fundLabel: o.label };
+  modalDrillSize = null;
+  $('modal-bg').classList.remove('hidden');
+  renderModalSizeSel();
+  renderModal();
+}
+function closeModal(){ $('modal-bg').classList.add('hidden'); modalCtx = null; hideTooltip(); }
+function renderModalSizeSel(){
+  const { scopeH } = modalCtx;
+  const counts = D.sizes.map((_,i) => scopeH.filter(h=>D.hosp[h].sz===i).length);
+  $('mo-sel-size').innerHTML = `<option value="" ${modalDrillSize==null?'selected':''}>ทั้งหมด (ตามขนาด)</option>` +
+    D.sizes.map((s,i) => counts[i] ? `<option value="${i}" ${modalDrillSize===i?'selected':''}>${s} (${counts[i]})</option>` : '').join('');
+  renderModalSizeGroupSel();
+}
+function renderModalSizeGroupSel(){
+  const { scopeH } = modalCtx;
+  const groupIdxs = D.sizeGroups.map((g,i)=>i).filter(i => modalDrillSize==null || D.sizeGroups[i].sz===modalDrillSize);
+  const counts = groupIdxs.map(gi => scopeH.filter(h=>D.hosp[h].sg===gi).length);
+  $('mo-sel-sizegroup').innerHTML = `<option value="">${modalDrillSize==null?'เลือกขนาดก่อน หรือเลือกตรงนี้ได้เลย':'ทั้งหมด'}</option>` +
+    groupIdxs.map((gi,k) => counts[k] ? `<option value="${gi}">${D.sizeGroups[gi].label} (${counts[k]})</option>` : '').join('');
+}
+function renderModal(){
+  const { scopeH, div, ulab, fundLabel, y } = modalCtx;
+  const yLabel = y==='sum' ? 'รวมทุกปีงบ (2567-2569)' : `ปีงบ ${y}`;
+  $('mo-title').textContent = fundLabel;
+  $('mo-sub').textContent = `${yLabel} · จัดกลุ่มตามขนาดหน่วยบริการ · ${scopeLabel()}`;
+
+  let groups, clickableLevel;
+  if (modalDrillSize == null){
+    groups = D.sizes.map((label,i) => ({ label, key: i, hcodes: scopeH.filter(h => D.hosp[h].sz===i) })).filter(g=>g.hcodes.length);
+    $('mo-crumb').innerHTML = `<b>ทั้งหมด (ตามขนาด)</b>`;
+    clickableLevel = true;
+  } else {
+    groups = D.sizeGroups
+      .map((g,i) => ({ label: g.label, key: i, sz: g.sz, hcodes: scopeH.filter(h => D.hosp[h].sg===i) }))
+      .filter(g => g.sz===modalDrillSize && g.hcodes.length);
+    $('mo-crumb').innerHTML = `<a id="mo-crumb-back">ทั้งหมด (ตามขนาด)</a><span class="sep">›</span><b>${D.sizes[modalDrillSize]}</b>`;
+    clickableLevel = false;
+  }
+
+  const rowsData = groups.map(g => ({...g, v: g.hcodes.reduce((s,h)=>s+modalHcodeVal(h),0)})).sort((a,b)=>b.v-a.v);
+  const mx = Math.max(...rowsData.map(r=>r.v), 0);
+  const rowsEl = $('mo-rows');
+  if (!rowsData.length || mx<=0){ rowsEl.innerHTML = `<div class="empty">ไม่มีข้อมูลในขอบเขตนี้</div>`; return; }
+  rowsEl.innerHTML = rowsData.map((r,i) => {
+    const pct = mx>0 ? r.v/mx*100 : 0;
+    return `<button class="mo-row${clickableLevel?'':' leaf'}" data-key="${r.key}">
+      <span class="rank-n">${i+1}</span>
+      <span class="mo-mid">
+        <span class="mo-label" title="${r.label}">${r.label} <span class="mo-count">(${r.hcodes.length} แห่ง)</span></span>
+        <span class="mo-barwrap"><span class="mo-barfill" style="width:${pct}%"></span></span>
+      </span>
+      <span class="mo-val">${fmt(r.v/div)} ${ulab}</span>
+    </button>`;
+  }).join('');
+  rowsEl.querySelectorAll('.mo-row').forEach((el, idx) => {
+    const g = rowsData[idx];
+    if (clickableLevel){
+      el.addEventListener('click', () => { modalDrillSize = g.key; renderModalSizeSel(); renderModal(); });
+    }
+    el.addEventListener('mouseenter', e => showModalTooltip(e, g));
+    el.addEventListener('mousemove', positionTooltip);
+    el.addEventListener('mouseleave', hideTooltip);
+  });
+  const backEl = $('mo-crumb-back');
+  if (backEl) backEl.addEventListener('click', () => { modalDrillSize = null; renderModalSizeSel(); renderModal(); });
+}
+function showModalTooltip(e, g){
+  const { div, ulab } = modalCtx;
+  const items = g.hcodes.map(h => ({n: D.hosp[h].n, v: modalHcodeVal(h)})).filter(o=>o.v>0).sort((a,b)=>b.v-a.v);
+  const total = items.reduce((s,o)=>s+o.v,0);
+  const top = items.slice(0,10);
+  const restN = items.length - top.length, restV = items.slice(10).reduce((s,o)=>s+o.v,0);
+  let html = `<div class="tt-hd">${g.label} (${items.length} แห่งมีข้อมูล)</div>`;
+  html += top.map(o => `<div class="tt-row"><span>${o.n}</span><span>${fmt(o.v/div)} ${ulab} (${total?(o.v/total*100).toFixed(1):0}%)</span></div>`).join('');
+  if (restN>0) html += `<div class="tt-row" style="opacity:.7"><span>และอื่นๆ (${restN} แห่ง)</span><span>${fmt(restV/div)} ${ulab} (${total?(restV/total*100).toFixed(1):0}%)</span></div>`;
+  $('tooltip').innerHTML = html;
+  $('tooltip').style.display = 'block';
+  positionTooltip(e);
+}
+function positionTooltip(e){
+  const tip = $('tooltip');
+  tip.style.left = Math.min(e.clientX+14, innerWidth-tip.offsetWidth-10)+'px';
+  tip.style.top = Math.min(e.clientY+10, innerHeight-tip.offsetHeight-10)+'px';
+}
+function hideTooltip(){ $('tooltip').style.display = 'none'; }
+
+$('mo-close').addEventListener('click', closeModal);
+$('modal-bg').addEventListener('click', e => { if (e.target.id==='modal-bg') closeModal(); });
+$('mo-sel-size').addEventListener('change', e => {
+  modalDrillSize = e.target.value===''?null:+e.target.value;
+  renderModalSizeGroupSel(); renderModal();
+});
+$('mo-sel-sizegroup').addEventListener('change', e => {
+  if (e.target.value===''){ return; }
+  const gi = +e.target.value;
+  modalDrillSize = D.sizeGroups[gi].sz;
+  renderModalSizeSel();
+  renderModal();
+  setTimeout(() => {
+    const el = $('mo-rows').querySelector(`[data-key="${gi}"]`);
+    if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 30);
+});
+
 renderFySel();
 renderProvSel();
 renderTypeSel();
+renderSizeSel();
+renderSizeGroupSel();
 renderHospSel();
 renderAll();
 </script>
