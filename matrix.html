@@ -58,6 +58,8 @@ select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:
   background:var(--ink-3);color:var(--card);font-size:10px;font-weight:700;font-style:normal;cursor:pointer;
   margin-left:5px;vertical-align:middle;user-select:none;flex-shrink:0}
 .info-ic:hover{background:var(--accent)}
+.info-ic.peer-ic{background:var(--blue)}
+.info-ic.peer-ic:hover{background:var(--accent)}
 #info-pop{position:fixed;max-width:320px;background:var(--ink);color:var(--page);font-size:12.5px;line-height:1.55;
   padding:10px 13px;border-radius:8px;z-index:200;display:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 
@@ -110,11 +112,22 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <a href="rank.html">🏆 จัดอันดับ</a>
     <a href="risk.html">⚠️ เงินเสี่ยง</a>
     <a class="on" href="matrix.html" aria-current="page">📊 ตารางภาพรวม</a>
+    <a href="province.html">🗺️ เทียบจังหวัด</a>
     <a href="ppfs.html">🌱 PP FS สธ.</a>
   </nav>
 
   <div class="controls">
     <div class="fld"><label>โรงพยาบาล<span class="info-ic" data-tip="ท้ายชื่อ รพ. คือประเภทขนาด (A/S/M1/M2/F1-F3) ตามด้วยช่วงประชากร/เตียงของกลุ่มขนาดนั้น · หน่วยนอกสังกัด สธ. ไม่มีขนาด/GroupName จะโชว์ (นอก สธ.) แทน">i</span></label><select id="sel-hosp"></select></div>
+    <div class="fld"><label>ตัวหาร<span class="info-ic" data-tip="ค่าดิบ = ตัวเลขจริงไม่ปรับ · ต่อเตียง/ต่อประชากร UC = หารด้วยขนาด รพ. เพื่อเทียบข้ามขนาดได้เป็นธรรมขึ้น (ใช้กับปุ่ม ⓘ เทียบกลุ่ม ท้ายแถวด้วย) · ถ้า รพ.นี้ไม่มีข้อมูลเตียง/ประชากรจะถอยไปใช้ค่าดิบอัตโนมัติ">i</span></label><select id="sel-norm">
+      <option value="raw">ค่าดิบ</option>
+      <option value="bed">ต่อเตียง</option>
+      <option value="pop">ต่อประชากร UC 1,000 คน</option>
+    </select></div>
+    <div class="fld"><label>กลุ่มเทียบ (สำหรับ ⓘ ท้ายแถว)<span class="info-ic" data-tip="ขอบเขต รพ. ที่เอามาคำนวณมัธยฐาน/อันดับ ตอนคลิกไอคอน ⓘ ท้ายชื่อแต่ละแถว — ไม่กระทบตัวเลขในตารางหลัก">i</span></label><select id="sel-peer">
+      <option value="gn">กลุ่มขนาดเดียวกัน (GroupName)</option>
+      <option value="prov">จังหวัดเดียวกัน</option>
+      <option value="region">ทั้งเขต</option>
+    </select></div>
     <button class="btn" id="exp-all">▾ ขยายทั้งหมด</button>
     <button class="btn" id="col-all">▸ ย่อทั้งหมด</button>
     <span class="spacer"></span>
@@ -126,12 +139,14 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
     <div class="chips" id="h-chips"></div>
   </div>
 
+  <div class="card" style="margin-bottom:14px" id="norm-note" hidden></div>
+
   <div class="card" style="margin-bottom:14px">
     <p class="csub" style="margin:0">
       แถวหลัก (ตัวหนา) = 1 ใน 34 รายงาน/ลิงก์ที่ดึงจาก MISHOS แสดงตัวชี้วัดหลักของรายงานนั้น (เงิน&gt;จำนวนครั้ง&gt;อื่นๆ)
       <span class="info-ic" data-tip="คลิกแถวหลัก (หรือกด ▸/▾) เพื่อขยายดูตัวชี้วัดย่อยอื่นๆ ของรายงานเดียวกัน (เช่น จำนวนครั้ง, อัตราเฉลี่ย) ที่ซ่อนอยู่ด้านล่าง — รายงานที่มีตัวชี้วัดเดียวจะไม่มีลูกศรขยาย">i</span> ·
       คอลัมน์คือปีงบประมาณ 2560–2569 · ▲เขียว/▼ส้ม ใต้ตัวเลขคือเทียบกับปีงบก่อนหน้า (% เปลี่ยนแปลง)
-      <span class="info-ic" data-tip="▲ = ตัวเลขปีนี้มากกว่าปีก่อน (ส่วนใหญ่หมายถึงเบิก/ผลงานเพิ่มขึ้น) · ▼ = น้อยกว่าปีก่อน · เป็นทิศทางของตัวเลขเท่านั้น ไม่ได้ตัดสินว่าดี/แย่ทุกรายงาน (เช่น รายงานคุณภาพเบิกที่นับจำนวนข้อผิดพลาด ยิ่งลดยิ่งดี) · ⚠ = ปีฐานเปรียบเทียบเป็นช่วงเริ่มระบบ (IP ปี 2560–2562) ไม่น่าเชื่อถือสำหรับดูอัตราโต">i</span>
+      <span class="info-ic" data-tip="▲ = ตัวเลขปีนี้มากกว่าปีก่อน (ส่วนใหญ่หมายถึงเบิก/ผลงานเพิ่มขึ้น) · ▼ = น้อยกว่าปีก่อน · เป็นทิศทางของตัวเลขเท่านั้น ไม่ได้ตัดสินว่าดี/แย่ทุกรายงาน (เช่น รายงานคุณภาพเบิกที่นับจำนวนข้อผิดพลาด ยิ่งลดยิ่งดี) · ⚠ = ปีฐานเปรียบเทียบเป็นช่วงเริ่มระบบ (IP ปี 2560–2562) ไม่น่าเชื่อถือสำหรับดูอัตราโต · ⓘ ท้ายชื่อแต่ละแถว = เทียบกลุ่ม (มัธยฐาน+อันดับ+เคยไม่เคลมกี่ปีติดกัน) ที่ปีงบเต็มล่าสุด">i</span>
     </p>
   </div>
 
@@ -140,8 +155,9 @@ footer{margin-top:22px;font-size:11px;color:var(--ink-3);font-family:var(--mono)
   </div>
 
   <footer>
-    ค่าดิบของ รพ.ที่เลือกเท่านั้น (ไม่ผ่านตัวหารเตียง/ประชากร) · หน่วยแสดงต่อแถวตามขนาดตัวเลขจริง (บาท/พันบาท/ล้านบาท หรือ ครั้ง/พันครั้ง) ·
+    ค่าของ รพ.ที่เลือกเท่านั้น (ปรับตัวหารได้จากช่องด้านบน) · หน่วยแสดงต่อแถวตามขนาดตัวเลขจริง (บาท/พันบาท/ล้านบาท หรือ ครั้ง/พันครั้ง) ·
     * = ปีงบ 2569 มีข้อมูลเพียง ~9 เดือน · ⚠ = รายงาน IP ปี 2560–2562 ช่วงเริ่มระบบไม่น่าเชื่อถือ (กติกา R-2) ·
+    ⓘ ท้ายชื่อแถวหลัก = เทียบกลุ่มที่ปีงบเต็มล่าสุด (มัธยฐาน/อันดับ/เคยไม่เคลม 3 ปีติดกันหรือไม่) ·
     ก.ย. ของทุกปีมักพุ่งสูงเพราะยอดเคลมส่งช้าปิดปีงบ (ไม่กระทบตารางนี้เพราะเป็นยอดรายปีอยู่แล้ว)
   </footer>
 </div>
@@ -163,17 +179,19 @@ const GROUPS = [
  ['สิทธิอื่น (ขรก./อปท.)',['other_csmbs','other_lgo']],
 ];
 const qs = new URLSearchParams(location.search);
-let state = { h: qs.get('h') && H[qs.get('h')] ? qs.get('h') : '10713' };
+let state = { h: qs.get('h') && H[qs.get('h')] ? qs.get('h') : '10713', norm:'raw', peer:'gn' };
 const expanded = new Set();
 const $ = id => document.getElementById(id);
+// ปีงบเต็มล่าสุด (ไม่รวมปีที่ยังไม่เต็ม 12 เดือน) — ใช้เป็นปียืนสำหรับเทียบกลุ่มให้คงที่ทั้งตาราง
+const FULL_IDX = (() => { const i = YEARS.indexOf(PARTIAL); return i>0 ? i-1 : NY-1; })();
 
-// info tooltip — click ⓘ ข้างหัวข้อเพื่อดู/ซ่อนคำอธิบายภาษาคน
+// info tooltip — click ⓘ ข้างหัวข้อเพื่อดู/ซ่อนคำอธิบายภาษาคน (แถวรายงาน ⓘ คำนวณสดจาก state.norm/state.peer)
 (function(){
   const pop = document.createElement('div'); pop.id = 'info-pop'; document.body.appendChild(pop);
   document.addEventListener('click', e=>{
     const ic = e.target.closest('.info-ic');
     if (ic){
-      pop.textContent = ic.dataset.tip;
+      pop.textContent = ic.classList.contains('peer-ic') ? peerTip(ic.dataset.key, ic.dataset.metric) : ic.dataset.tip;
       pop.style.display = 'block';
       const r = ic.getBoundingClientRect();
       pop.style.left = Math.max(8, Math.min(r.left, innerWidth-328))+'px';
@@ -182,6 +200,55 @@ const $ = id => document.getElementById(id);
     } else if (!e.target.closest('#info-pop')){ pop.style.display = 'none'; }
   });
 })();
+function divisor(h){ if(state.norm==='bed') return H[h].b||null; if(state.norm==='pop') return H[h].pop?H[h].pop/1000:null; return 1; }
+function peerGroupName(){ return state.peer==='gn'?'กลุ่มขนาดเดียวกัน':state.peer==='prov'?'จังหวัดเดียวกัน':'ทั้งเขต'; }
+function peerMembers(h){
+  const me = H[h];
+  if (state.peer==='gn') return me.g ? Object.keys(H).filter(x=>x!==h && H[x].g===me.g) : [];
+  if (state.peer==='prov') return Object.keys(H).filter(x=>x!==h && H[x].p===me.p);
+  return Object.keys(H).filter(x=>x!==h);
+}
+function median(arr){ const a=arr.filter(v=>v!=null&&isFinite(v)).sort((x,y)=>x-y);
+  if(!a.length) return null; const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+// เทียบกลุ่มที่ปีงบเต็มล่าสุด (FULL_IDX คงที่) + เช็คว่า รพ.นี้ไม่มีข้อมูล 3 ปีเต็มหลังสุดติดกันหรือไม่ (ตามคอมเมนต์ "ไม่เคลม 3 ปีรวด บอกไม่ได้ว่ามาก/น้อย")
+function peerTip(key, metric){
+  const rep = AGG.reports[key]; const mlabel = rep.metrics[metric];
+  const useNorm = state.norm!=='raw';
+  const dOwn = divisor(state.h);
+  if (useNorm && !dOwn) return `รพ.นี้ไม่มีข้อมูลตัวหาร (${state.norm==='bed'?'เตียง':'ประชากร UC'}) — เปลี่ยนกลับเป็น "ค่าดิบ" เพื่อเทียบกลุ่มรายการนี้`;
+  const peers = peerMembers(state.h).filter(x=>!useNorm || divisor(x));
+  const ownRaw = seriesRaw(state.h, key, metric)[FULL_IDX];
+  const ownV = ownRaw==null ? null : (useNorm ? ownRaw/dOwn : ownRaw);
+  const peerVals = []; let peerHave=0;
+  for (const x of peers){
+    const raw = seriesRaw(x, key, metric)[FULL_IDX];
+    if (raw==null) continue;
+    peerHave++;
+    peerVals.push(useNorm ? raw/divisor(x) : raw);
+  }
+  const md = median(peerVals);
+  const yr = YEARS[FULL_IDX];
+  const normLbl = useNorm ? (state.norm==='bed'?' ต่อเตียง':' ต่อ ปชก.UC พันคน') : '';
+  let out = `ปีงบ ${yr} (ปีเต็มล่าสุด) · เทียบกับ${peerGroupName()} (${peers.length} แห่ง, มีข้อมูล ${peerHave})`;
+  if (md!=null) out += ` · มัธยฐานกลุ่ม ${fmt(md)}${normLbl} ${mlabel}`; else out += ' · กลุ่มนี้ไม่มีข้อมูลปีนี้เช่นกัน';
+  if (ownV!=null){
+    const ranked = [ownV, ...peerVals].sort((a,b)=>b-a);
+    const pos = ranked.indexOf(ownV)+1;
+    out += ` · รพ.นี้ ${fmt(ownV)}${normLbl} (อันดับ ${pos}/${ranked.length})`;
+  } else {
+    const noClaimPeers = peers.length - peerHave;
+    out += ` · รพ.นี้ไม่มีข้อมูล/ไม่เคลมปีนี้ — ในกลุ่มมี ${noClaimPeers}/${peers.length} แห่งที่ไม่เคลมเช่นกัน`;
+  }
+  // เช็ค 3 ปีเต็มหลังสุดติดกัน (FULL_IDX, -1, -2) ว่าง่วงหรือไม่
+  const last3 = [FULL_IDX, FULL_IDX-1, FULL_IDX-2].filter(i=>i>=0).map(i=>seriesRaw(state.h,key,metric)[i]);
+  if (last3.length===3 && last3.every(v=>v==null)){
+    const peerAllNull3 = peers.filter(x=>{
+      const s=seriesRaw(x,key,metric); return [FULL_IDX,FULL_IDX-1,FULL_IDX-2].every(i=>s[i]==null);
+    }).length;
+    out += ` · ⚠ รพ.นี้ไม่มีข้อมูล 3 ปีเต็มหลังสุดติดกัน (${YEARS[FULL_IDX-2]}-${yr}) — ในกลุ่มมี ${peerAllNull3}/${peers.length} แห่งที่ไม่มีเช่นกัน (${peers.length?fmt(peerAllNull3/peers.length*100,0):'–'}%)`;
+  }
+  return out;
+}
 function fmt(v, dec){ if(v==null||!isFinite(v)) return '–'; const av=Math.abs(v);
   const d = dec!=null?dec:(av>=100?0:av>=1?1:2);
   return (+v).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:0}); }
@@ -206,12 +273,18 @@ function hospLabel(h){
   return name;
 }
 function seriesRaw(h, report, metric){ return (AGG.annual[h]?.[report]?.[metric]) || Array(NY).fill(null); }
+function seriesAct(h, report, metric){
+  const raw = seriesRaw(h, report, metric);
+  if (state.norm==='raw') return raw;
+  const d = divisor(h);
+  return d ? raw.map(v=>v==null?null:v/d) : raw;
+}
 
-function cellHTML(vals, i, ipGuard, metricKey){
+function cellHTML(vals, i, ipGuard, metricKey, usingNorm){
   const v = vals[i];
   const mark = YEARS[i]===PARTIAL ? '*' : '';
   if (v==null) return '<td><span class="dash">–</span></td>';
-  const div = cellUnit(v), ulabel = unitLbl(div, metricKey);
+  const div = usingNorm ? 1 : cellUnit(v), ulabel = usingNorm ? unitBase(metricKey)+(state.norm==='bed'?'/เตียง':'/พันคน') : unitLbl(div, metricKey);
   let deltaHtml = '';
   if (i>0){
     const guardedPrev = ipGuard && YEARS[i-1]<2563;
@@ -240,6 +313,13 @@ function render(){
     me.pop?`<span class="chip b">ปชก.UC ${fmt(me.pop,0)}</span>`:'',
   ].join('');
 
+  const usingNorm = state.norm!=='raw' && !!divisor(state.h);
+  const noteEl = $('norm-note');
+  if (state.norm!=='raw' && !divisor(state.h)){
+    noteEl.hidden = false;
+    noteEl.innerHTML = `<p class="csub" style="margin:0;color:var(--warn)">⚠ รพ.นี้ไม่มีข้อมูล${state.norm==='bed'?'เตียง':'ประชากร UC'} — ตารางแสดงค่าดิบแทน</p>`;
+  } else { noteEl.hidden = true; }
+
   let html = '<thead><tr><th>รายงาน / ตัวชี้วัด</th>' +
     YEARS.map(y=>`<th>${y}${y===PARTIAL?'*':''}</th>`).join('') + '</tr></thead><tbody>';
 
@@ -253,15 +333,15 @@ function render(){
       const primary = metricPref(rep.metrics);
       const others = ms.filter(m=>m!==primary);
       const ipGuard = IP_REPORTS.includes(k);
-      const pVals = seriesRaw(state.h, k, primary);
+      const pVals = seriesAct(state.h, k, primary);
       const isOpen = expanded.has(k);
       const toggle = others.length ? `<span class="toggle" data-key="${k}">${isOpen?'▾':'▸'}</span>` : `<span class="toggle"></span>`;
-      html += `<tr class="rep" data-key="${k}"><td>${toggle}${rep.label} — ${rep.metrics[primary]}</td>` +
-        pVals.map((_,i)=>cellHTML(pVals, i, ipGuard, primary)).join('') + '</tr>';
+      html += `<tr class="rep" data-key="${k}"><td>${toggle}${rep.label} — ${rep.metrics[primary]}<span class="info-ic peer-ic" data-key="${k}" data-metric="${primary}" title="เทียบกลุ่ม">i</span></td>` +
+        pVals.map((_,i)=>cellHTML(pVals, i, ipGuard, primary, usingNorm)).join('') + '</tr>';
       for (const m of others){
-        const vals = seriesRaw(state.h, k, m);
+        const vals = seriesAct(state.h, k, m);
         html += `<tr class="sub${isOpen?' show':''}" data-parent="${k}"><td>${rep.metrics[m]}</td>` +
-          vals.map((_,i)=>cellHTML(vals, i, ipGuard, m)).join('') + '</tr>';
+          vals.map((_,i)=>cellHTML(vals, i, ipGuard, m, usingNorm)).join('') + '</tr>';
       }
     }
   }
@@ -270,7 +350,7 @@ function render(){
 
   $('mx-table').querySelectorAll('tr.rep').forEach(tr=>{
     tr.addEventListener('click', e=>{
-      if (e.target.closest('a')) return;
+      if (e.target.closest('a') || e.target.closest('.info-ic')) return;
       const key = tr.dataset.key;
       const subs = $('mx-table').querySelectorAll(`tr.sub[data-parent="${key}"]`);
       if (!subs.length) return;
@@ -290,6 +370,8 @@ function renderControls(){
 }
 
 $('sel-hosp').addEventListener('change', e=>{ state.h=e.target.value; render(); });
+$('sel-norm').addEventListener('change', e=>{ state.norm=e.target.value; render(); });
+$('sel-peer').addEventListener('change', e=>{ state.peer=e.target.value; });
 $('exp-all').addEventListener('click', ()=>{
   for (const [,keys] of GROUPS) for (const k of keys) if (AGG.reports[k] && Object.keys(AGG.reports[k].metrics).length>1) expanded.add(k);
   render();
